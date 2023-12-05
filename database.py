@@ -1,3 +1,4 @@
+import json
 import mysql.connector
 from config import DB_CONFIG
 import numpy as np
@@ -32,7 +33,10 @@ class Database:
                 session INT AUTO_INCREMENT PRIMARY KEY,     
                 subject VARCHAR(20),
                 category VARCHAR(50),
-                stimulus_group VARCHAR(50)
+                stimulus_group VARCHAR(50),
+                timeStart INT,
+                timeStop INT,
+                freqScale JSON             
             )
         """)
 
@@ -48,17 +52,18 @@ class Database:
                 FOREIGN KEY (session) REFERENCES sessions(session)
             )
         """)
-         
+        
         conn.commit()
         cursor.close()
         conn.close()
 
-    def insert_subject(self, group,subject,stimGroup):
+    def insert_subject(self, group,subject,stimGroup,lenTime,freqScale):
+
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
-
-        cursor.execute("INSERT INTO sessions (subject,category,stimulus_group) VALUES (%s,%s,%s)", (subject,group,stimGroup))
+        cursor.execute("INSERT INTO sessions (subject,category,stimulus_group,timeStart,timeStop,freqScale) VALUES (%s,%s,%s,%s,%s,%s)",
+                        (subject,group,stimGroup,lenTime[0][0].tolist(),lenTime[0][1].tolist(),freqScale))
 
         session = cursor.lastrowid 
 
@@ -102,17 +107,20 @@ class Database:
 if __name__ == "__main__":
     
     eng = matlab.engine.connect_matlab('primary')
-    groupLabels = eng.eval('groupLabels')
-    # stimGroup = eng.eval('stimGroup')
-    # subject = eng.eval('subject')
-
+    abc = groupLabels = eng.eval('groupLabels')
+    stimGroup = eng.eval('stimGroup')
+    subject = eng.eval('subject')
+    freqScale1 = np.array(eng.eval('freqScale'))
+    freqScale = json.dumps(freqScale1.tolist())
+    lenTime = np.array(eng.eval('lenTime')).astype(np.int32)
+    
     dataLoader = MatlabDataLoader()
 
     db = Database()
     db.create_databaseTables()
     
     for group in groupLabels:
-        session = db.insert_subject(group, subject='YDX', stimGroup='Target Stimulus')
+        session = db.insert_subject(group,subject,stimGroup,lenTime,freqScale)
         wavelet, LFP = dataLoader.get_data(eng, group)
         print(group)
         for channel in range(wavelet.shape[-1]):
@@ -121,7 +129,7 @@ if __name__ == "__main__":
             for trial in range(wavelet.shape[-2]):
                 LFP_data = LFP[:, trial, channel].tobytes()
                 wavelet_data = wavelet[:, :, trial, channel].tobytes()
-                data_list.append((session, channel, trial, LFP_data, wavelet_data))
+                data_list.append((session, channel+1, trial+1, LFP_data, wavelet_data))
             
             db.insert_subjectData(data_list)
 

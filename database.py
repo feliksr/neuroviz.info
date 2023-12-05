@@ -36,10 +36,11 @@ class Database:
                 stimulus_group VARCHAR(50),
                 timeStart INT,
                 timeStop INT,
-                freqScale JSON             
+                freqScale JSON, 
+                xBinsWavelet INT,
+                yBinsWavelet INT                   
             )
         """)
-
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS arrays (
@@ -57,13 +58,13 @@ class Database:
         cursor.close()
         conn.close()
 
-    def insert_subject(self, group,subject,stimGroup,lenTime,freqScale):
+    def insert_subject(self, group,subject,stimGroup,lenTime,freqScale,waveletShape):
 
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
-        cursor.execute("INSERT INTO sessions (subject,category,stimulus_group,timeStart,timeStop,freqScale) VALUES (%s,%s,%s,%s,%s,%s)",
-                        (subject,group,stimGroup,lenTime[0][0].tolist(),lenTime[0][1].tolist(),freqScale))
+        cursor.execute("INSERT INTO sessions (subject,category,stimulus_group,timeStart,timeStop,freqScale,xBinsWavelet,yBinsWavelet) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                        (subject,group,stimGroup,lenTime[0][0].tolist(),lenTime[0][1].tolist(),freqScale,waveletShape[0],waveletShape[1]))
 
         session = cursor.lastrowid 
 
@@ -107,11 +108,11 @@ class Database:
 if __name__ == "__main__":
     
     eng = matlab.engine.connect_matlab('primary')
-    abc = groupLabels = eng.eval('groupLabels')
+    groupLabels = eng.eval('groupLabels')
     stimGroup = eng.eval('stimGroup')
     subject = eng.eval('subject')
-    freqScale1 = np.array(eng.eval('freqScale'))
-    freqScale = json.dumps(freqScale1.tolist())
+    frequencyScale = np.array(eng.eval('freqScale'))
+    freqScale = json.dumps(frequencyScale.tolist())
     lenTime = np.array(eng.eval('lenTime')).astype(np.int32)
     
     dataLoader = MatlabDataLoader()
@@ -120,8 +121,8 @@ if __name__ == "__main__":
     db.create_databaseTables()
     
     for group in groupLabels:
-        session = db.insert_subject(group,subject,stimGroup,lenTime,freqScale)
         wavelet, LFP = dataLoader.get_data(eng, group)
+        session = db.insert_subject(group,subject,stimGroup,lenTime,freqScale,[wavelet.shape[0],wavelet.shape[1]])
         print(group)
         for channel in range(wavelet.shape[-1]):
             data_list = []

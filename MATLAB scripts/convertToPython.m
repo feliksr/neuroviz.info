@@ -1,36 +1,38 @@
 clear
 patientNum = 3;
 
-[LFP, wavelet, dataParams] = convert(patientNum);
+[LFP, wavelet,dataParams,lenTime] = convert(patientNum);
 chanLabel=dataParams.channelLabel;
 chanNum=dataParams.chanNum;
-scale=(1./dataParams.scale)';
-waveWin = dataParams.samplesWavelet;
-LFPWin = dataParams.samplesLFP;
+freqScale=(1./dataParams.scale)';
+groupLabels = strrep(dataParams.(dataParams.comparisonName), ' ', '');
+stimGroup = 'Stimulus Identity';
+subject = 'YDX';
 
-function [LFP, wavelet, dataParams] = convert(patientNum)
-groupCat = 'targetStatus';
+
+function [LFP, wavelet,dataParams,lenTime] = convert(patientNum)
+groupCat = 'stimulusIdentity';
 alignSpot = 'response';
+lenTime = [-2 1];
 decodeObj = 'ObjectIdentification';
 patientsDir = ['\\rolstonserver\d\Code\Feliks\AlgoPlace\Data\' decodeObj '\Processed\' alignSpot '\'];
 patientsFiles = dir([patientsDir groupCat]); 
 patientFile = patientsFiles(patientNum);
 
 load([patientsDir groupCat '\' patientFile.name]);
-labels = dataParams.(dataParams.comparisonName);
+
+labels = strrep(dataParams.(dataParams.comparisonName), ' ', '');
 
 numSamplesLFP = size(LFPdata(1).group,1);
 timeLFP = linspace(-dataParams.preSeconds,dataParams.postSeconds,numSamplesLFP);
-samplesLFP = find(timeLFP >= -2 & timeLFP <= 1);
-dataParams.samplesLFP = samplesLFP;
+samplesLFP = find(timeLFP >= lenTime(1) & timeLFP <= lenTime(2));
 
 numSamplesWavelet = size(waveData(1).group,2);
 timeWavelet = linspace(-dataParams.preSeconds,dataParams.postSeconds,numSamplesWavelet);
-samplesWavelet = find(timeWavelet >= -2 & timeWavelet <= 1);
-dataParams.samplesWavelet = samplesWavelet;
+samplesWavelet = find(timeWavelet >= lenTime(1) & timeWavelet <= lenTime(2));
 
 for i = 1:length(labels)
-    LFP.(labels{i}) = LFPdata(i).group;
-    wavelet.(labels{i}) = waveData(i).group;
+    LFP.(labels{i}) = LFPdata(i).group(samplesLFP,:,:);
+    wavelet.(labels{i}) = waveData(i).group(:,samplesWavelet,:,:);
 end
 end

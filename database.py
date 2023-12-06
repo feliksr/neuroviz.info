@@ -4,6 +4,7 @@ from config import DB_CONFIG
 import numpy as np
 import matlab.engine
 
+createNewDatabase=False
 
 class MatlabDataLoader:
 
@@ -38,7 +39,7 @@ class Database:
                 timeStop INT,
                 freqScale JSON, 
                 xBinsWavelet INT,
-                yBinsWavelet INT                   
+                yBinsWavelet INT                
             )
         """)
 
@@ -58,26 +59,33 @@ class Database:
         cursor.close()
         conn.close()
 
-    def insert_subject(self, group,subject,stimGroup,lenTime,freqScale,waveletShape):
+    def insert_subject(self, category,subject,stimGroup,lenTime,freqScale,waveletShape):
 
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
-        cursor.execute("INSERT INTO sessions (subject,category,stimulus_group,timeStart,timeStop,freqScale,xBinsWavelet,yBinsWavelet) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
-                        (subject,group,stimGroup,lenTime[0][0].tolist(),lenTime[0][1].tolist(),freqScale,waveletShape[0],waveletShape[1]))
+        
+        cursor.execute("SELECT session FROM sessions WHERE subject = %s AND category = %s AND stimulus_group = %s",
+                   (subject, category, stimGroup))
+        result = cursor.fetchone()
 
-        session = cursor.lastrowid 
+        if result:
+            session = result[0]
+        else:
+            cursor.execute("INSERT INTO sessions (subject, category, stimulus_group, timeStart, timeStop, freqScale, xBinsWavelet, yBinsWavelet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                        (subject, category, stimGroup, lenTime[0][0].tolist(), lenTime[0][1].tolist(), freqScale, waveletShape[0], waveletShape[1]))
+            session = cursor.lastrowid
+            conn.commit()
 
-        conn.commit()
         cursor.close()
         conn.close()
-
         return session
 
     def insert_subjectData(self, data_list):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
+
 
         insert_query = """
             INSERT INTO arrays (session, channel, trial, LFP_data, wavelet_data) 
@@ -118,12 +126,23 @@ if __name__ == "__main__":
     dataLoader = MatlabDataLoader()
 
     db = Database()
-    db.create_databaseTables()
+    if (createNewDatabase == True):
+        db.create_databaseTables()
     
-    for group in groupLabels:
-        wavelet, LFP = dataLoader.get_data(eng, group)
-        session = db.insert_subject(group,subject,stimGroup,lenTime,freqScale,[wavelet.shape[0],wavelet.shape[1]])
-        print(group)
+    for category in groupLabels:
+        wavelet, LFP = dataLoader.get_data(eng, category)
+        session = db.insert_subject(category,subject,stimGroup,lenTime,freqScale,[wavelet.shape[0],wavelet.shape[1]])
+        print(category)
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("USE my_new_database")
+
+        delete_query = "DELETE FROM arrays WHERE session = %s"
+        cursor.execute(delete_query, (session,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
         for channel in range(wavelet.shape[-1]):
             data_list = []
             print(channel)

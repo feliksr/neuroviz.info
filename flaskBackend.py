@@ -6,12 +6,11 @@ from io import BytesIO
 from config import GITHUB_TOKEN
 import scipy.stats as stats
 
-
 REPO_URL = "https://api.github.com/repos/feliksr/object_decoding2/contents/"
 
 headers = {
     'Authorization': f'token {GITHUB_TOKEN}',
-    'Accept': 'application/vnd.github.v3.raw', 
+    'Accept': 'application/vnd.github.v3.raw',
 }
 
 def load_npy_from_github(filename):
@@ -27,7 +26,8 @@ timeLFP = np.round(load_npy_from_github('timeLFP.npy'),3)
 winLFP = load_npy_from_github('winLFP.npy')
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
 
 
 class JsonifyWavelet:
@@ -80,14 +80,14 @@ class JsonifyLFP:
 
 class DataLoader:
 
-    def get_data(self,type,group,chan,window,excludedTrials):
+    def get_data(self,type,stimGroup,group,chan,window,excludedTrials):
         excluded_trials = excludedTrials.get(group, [])
         excludedTrialsZeroIdx = [trial - 1 for trial in excluded_trials]
-        response = requests.get(REPO_URL + f"{type}/{group}/Channel_{chan}.npy", headers=headers)
+        response = requests.get(REPO_URL + f"{stimGroup}/{type}/{group}/Channel_{chan}.npy", headers=headers)
 
         allData = np.load(BytesIO(response.content))
         includedTrials = np.delete(allData, excludedTrialsZeroIdx, -1)
-        
+
         if type == 'wavelet':
             windowedData = includedTrials[:, window, :]
         else:
@@ -102,11 +102,12 @@ def get_chanNums():
     return chanNums.tolist()
 
 @app.route('/anova', methods=['POST'])
-    
-def run_ANOVA():    
+
+def run_ANOVA():
     args = request.json
     currentChan = args.get('currentChannel')
     allGroups = args.get('allGroups')
+    stimGroup = args.get('stimGroup')
     excludedTrials = args.get('excludedTrialsContainer')
     print(currentChan)
     data = DataLoader()
@@ -114,9 +115,9 @@ def run_ANOVA():
     ANOVAforWavelet = []
     ANOVAforLFP = []
     for group in allGroups:
-        wavelet = data.get_data('wavelet',group,currentChan,winWavelet,excludedTrials)
+        wavelet = data.get_data('wavelet',stimGroup,group,currentChan,winWavelet,excludedTrials)
         ANOVAforWavelet.append(wavelet)
-        lfp = data.get_data('LFP',group,currentChan,winLFP,excludedTrials)
+        lfp = data.get_data('LFP',stimGroup,group,currentChan,winLFP,excludedTrials)
         ANOVAforLFP.append(lfp)
 
     pvals_wavelet = np.empty(ANOVAforWavelet[0].shape)
@@ -125,13 +126,13 @@ def run_ANOVA():
             _, p_val_wavelet = stats.f_oneway(ANOVAforWavelet[0][row, column], ANOVAforWavelet[1][row, column], ANOVAforWavelet[2][row, column])
             pvals_wavelet[row, column] = p_val_wavelet
     waveletANOVA = np.expand_dims(pvals_wavelet,axis=-1)
-    
+
     pvals_LFP = np.empty(ANOVAforLFP[0].shape)
     for row in range(ANOVAforLFP[0].shape[0]):
         _, p_val_LFP = stats.f_oneway(ANOVAforLFP[0][row], ANOVAforLFP[1][row], ANOVAforLFP[2][row])
         pvals_LFP[row] = p_val_LFP
-    LFPANOVA = np.expand_dims(pvals_LFP,axis=-1)  
-    
+    LFPANOVA = np.expand_dims(pvals_LFP,axis=-1)
+
     converterWaveletANOVA = JsonifyWavelet(waveletANOVA)
     converterLFPANOVA = JsonifyLFP(LFPANOVA)
     trialsWavelet = converterWaveletANOVA.slice_trials()
@@ -146,13 +147,14 @@ def run_ANOVA():
 def serve_data():
     args = request.json
     group = args.get('group')
+    stimGroup=args.get('stimGroup')
     currentChannel = args.get('currentChannel')
     meanTrials = args.get('meanTrials')
     excludedTrials = args.get('excludedTrialsContainer')
 
     data = DataLoader()
-    waveletData = data.get_data('wavelet',group,currentChannel,winWavelet,excludedTrials)
-    LFPdata = data.get_data('LFP',group,currentChannel,winLFP,excludedTrials)
+    waveletData = data.get_data('wavelet',stimGroup,group,currentChannel,winWavelet,excludedTrials)
+    LFPdata = data.get_data('LFP',stimGroup,group,currentChannel,winLFP,excludedTrials)
 
     if meanTrials == True:
         meanWavelet = np.mean(waveletData,axis=-1)
@@ -162,11 +164,11 @@ def serve_data():
         meanLFP = np.mean(LFPdata,axis=-1)
         meanLFP = np.expand_dims(meanLFP,axis=-1)
         converterLFP = JsonifyLFP(meanLFP)
-        
-    else: 
+
+    else:
         converterWavelet = JsonifyWavelet(waveletData)
         converterLFP = JsonifyLFP(LFPdata)
-    
+
     trialsWavelet = converterWavelet.slice_trials()
     trialsLFP = converterLFP.slice_trials()
 

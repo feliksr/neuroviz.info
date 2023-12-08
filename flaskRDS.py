@@ -7,8 +7,8 @@ from config import DB_CONFIG
 import json
 
 app = Flask(__name__)
-CORS(app)
-# CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
+# CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
 
 
 class JsonifyWavelet:
@@ -70,6 +70,26 @@ class JsonifyLFP:
 
 
 class Database:
+    def get_chanNums(self, subject, stimGroup, category):
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("USE my_new_database")
+        
+        query = """
+        SELECT a.channelNumber
+        FROM arrays a
+        JOIN sessions s ON a.session = s.session
+        WHERE a.trial = %s AND s.subject = %s AND s.stimulus_group = %s AND s.category = %s
+        """
+        cursor.execute(query, (1, subject, stimGroup, category))
+        chanNums = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+
+        return chanNums
+
+
     def get_trialData(self, channel, subject, stimGroup, category):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
@@ -79,7 +99,7 @@ class Database:
         SELECT a.LFP_data, a.wavelet_data, s.timeStart, s.timeStop, s.freqScale, s.xBinsWavelet, s.yBinsWavelet
         FROM arrays a
         JOIN sessions s ON a.session = s.session
-        WHERE a.channel = %s AND s.subject = %s AND s.stimulus_group = %s AND s.category = %s
+        WHERE a.channelNumber = %s AND s.subject = %s AND s.stimulus_group = %s AND s.category = %s
         """
         cursor.execute(query, (channel, subject, stimGroup, category))
         channelArrays = []
@@ -99,18 +119,30 @@ class Database:
 
         freqScale_array = np.array(freqScale_list)
         return channelArrays, timeStart, timeStop, freqScale_array
+    
+@app.route('/chans', methods=['POST'])
+
+    
+def get_chanNums():
+    args = request.json
+    
+    subject = args.get('subject')
+    category = args.get('group')
+    stimGroup=args.get('stimGroup')
+    db = Database()
+    chanNums = db.get_chanNums(subject, stimGroup, category)
+
+    return chanNums
 
 @app.route('/anova', methods=['POST'])
     
 def run_ANOVA():    
     args = request.json
+    subject = args.get('subject')
     currentChannel = args.get('currentChannel')
     allGroups = args.get('allGroups')
     stimGroup = args.get('stimGroup')
     excludedTrials = args.get('excludedTrialsContainer')
-    print(currentChannel)
-
-    subject = 'YDX'
 
     db = Database()
     
@@ -153,13 +185,13 @@ def run_ANOVA():
 @app.route('/', methods=['POST'])
 def serve_data():
     args = request.json
+    subject = args.get('subject')
     category = args.get('group')
     stimGroup=args.get('stimGroup')
     currentChannel = args.get('currentChannel')
     meanTrials = args.get('meanTrials')
     excludedTrials = args.get('excludedTrialsContainer')
-    subject = 'YDX'
-
+    
     db = Database()
     arrayList, timeStart, timeStop, freqScale = db.get_trialData(currentChannel, subject, stimGroup, category)
     

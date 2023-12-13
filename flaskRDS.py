@@ -7,8 +7,8 @@ from config import DB_CONFIG
 import json
 
 app = Flask(__name__)
-# CORS(app)
-CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
+CORS(app)
+# CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
 
 
 class JsonifyWavelet:
@@ -37,7 +37,7 @@ class JsonifyWavelet:
     def slice_trials(self):
         trials_data = {}
         for trial in range(self.data.shape[-1]):
-            trials_data[trial+1] = self._structure_data(trial)
+            trials_data[trial] = self._structure_data(trial)
         return trials_data
 
 
@@ -65,32 +65,37 @@ class JsonifyLFP:
     def slice_trials(self):
         trials_data = {}
         for trial in range(self.data.shape[-1]):
-            trials_data[trial+1] = self._structure_data(trial)
+            trials_data[trial] = self._structure_data(trial)
         return trials_data
 
 
 class Database:
-    def get_chanNums(self, subject, stimGroup, category):
+
+    def get_chans(self, subject, stimGroup, category):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
-        
+
         query = """
-        SELECT a.channelNumber
+        SELECT a.channelNumber, a.channelLabel
         FROM arrays a
         JOIN sessions s ON a.session = s.session
         WHERE a.trial = %s AND s.subject = %s AND s.stimulus_group = %s AND s.category = %s
         """
         cursor.execute(query, (1, subject, stimGroup, category))
-        chanNums = cursor.fetchall()
-        
+        chans = cursor.fetchall()
+
         cursor.close()
         conn.close()
 
-        return chanNums
+        chanNumbers = [chan[0] for chan in chans] 
+        chanLabels = [chan[1] for chan in chans]
+
+        return chanNumbers, chanLabels
 
 
     def get_trialData(self, channel, subject, stimGroup, category):
+        print(category)
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
@@ -121,18 +126,21 @@ class Database:
         return channelArrays, timeStart, timeStop, freqScale_array
     
 @app.route('/chans', methods=['POST'])
-
     
-def get_chanNums():
+def get_chans():
     args = request.json
     
     subject = args.get('subject')
     category = args.get('group')
     stimGroup=args.get('stimGroup')
     db = Database()
-    chanNums = db.get_chanNums(subject, stimGroup, category)
+    chanNumbers, chanLabels = db.get_chans(subject, stimGroup, category)
+    print(chanNumbers)
 
-    return chanNums
+    return jsonify({
+        "chanNumbers": chanNumbers,
+        "chanLabels": chanLabels
+    })
 
 @app.route('/anova', methods=['POST'])
     
@@ -140,9 +148,11 @@ def run_ANOVA():
     args = request.json
     subject = args.get('subject')
     currentChannel = args.get('currentChannel')
+
     allGroups = args.get('allGroups')
     stimGroup = args.get('stimGroup')
     excludedTrials = args.get('excludedTrialsContainer')
+    print(currentChannel)
 
     db = Database()
     
@@ -153,9 +163,11 @@ def run_ANOVA():
     
         LFParrays = [item["LFP"] for item in arrayList]
         Waveletarrays = [item["wavelet"] for item in arrayList]
-    
         LFPdata = np.stack(LFParrays, axis=-1) 
-        waveletData = np.stack(Waveletarrays, axis=-1)  
+        print(LFPdata.shape)
+
+        waveletData = np.stack(Waveletarrays, axis=-1)
+
         ANOVAforWavelet.append(waveletData)
         ANOVAforLFP.append(LFPdata)
 
@@ -174,12 +186,12 @@ def run_ANOVA():
     
     converterWaveletANOVA = JsonifyWavelet(waveletANOVA,timeStart, timeStop, freqScale)
     converterLFPANOVA = JsonifyLFP(LFPANOVA,timeStart, timeStop)
-    trialsWavelet = converterWaveletANOVA.slice_trials()
-    trialsLFP = converterLFPANOVA.slice_trials()
+    channelsWavelet = converterWaveletANOVA.slice_trials()
+    channelsLFP = converterLFPANOVA.slice_trials()
 
     return jsonify({
-        "trialsWavelet": trialsWavelet,
-        "trialsLFP": trialsLFP
+        "channelsWavelet": channelsWavelet,
+        "channelsLFP": channelsLFP
     })
 
 @app.route('/', methods=['POST'])

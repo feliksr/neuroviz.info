@@ -1,19 +1,19 @@
 clear
-patientNum = 3;
+patientNum = 4;
+groupCat = 'targetStatus';
+alignSpot = 'response';
+stimGroup = 'Stimulus Type';
+subject = 'YDX';
+lenTime = [-2 1];
 
-[LFP, wavelet,dataParams,lenTime] = convert(patientNum);
-chanLabel=dataParams.channelLabel;
-chanNum=dataParams.chanNum;
+[LFP, wavelet,dataParams] = convert(patientNum,groupCat,alignSpot,lenTime);
+chanLabels=dataParams.channelLabel;
+chanNums=dataParams.chanNum;
 freqScale=(1./dataParams.scale)';
 groupLabels = strrep(dataParams.(dataParams.comparisonName), ' ', '');
-stimGroup = 'Stimulus Identity';
-subject = 'YDX';
 
+function [LFP, wavelet,dataParams] = convert(patientNum,groupCat,alignSpot,lenTime)
 
-function [LFP, wavelet,dataParams,lenTime] = convert(patientNum)
-groupCat = 'stimulusIdentity';
-alignSpot = 'response';
-lenTime = [-2 1];
 decodeObj = 'ObjectIdentification';
 patientsDir = ['\\rolstonserver\d\Code\Feliks\AlgoPlace\Data\' decodeObj '\Processed\' alignSpot '\'];
 patientsFiles = dir([patientsDir groupCat]); 

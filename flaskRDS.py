@@ -71,7 +71,7 @@ class JsonifyLFP:
 
 class Database:
 
-    def get_chans(self, subject, stimGroup, category):
+    def get_chans(self, subject, run, stimGroup, category):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
@@ -80,9 +80,9 @@ class Database:
         SELECT a.channelNumber, a.channelLabel
         FROM arrays a
         JOIN sessions s ON a.session = s.session
-        WHERE a.trial = %s AND s.subject = %s AND s.stimulus_group = %s AND s.category = %s
+        WHERE a.trial = %s AND s.subject = %s AND s.run = %s AND s.stimGroup = %s AND s.category = %s
         """
-        cursor.execute(query, (1, subject, stimGroup, category))
+        cursor.execute(query, (1, subject, run, stimGroup, category))
         chans = cursor.fetchall()
 
         cursor.close()
@@ -94,7 +94,7 @@ class Database:
         return chanNumbers, chanLabels
 
 
-    def get_trialData(self, channel, subject, stimGroup, category):
+    def get_trialData(self, channel, subject, run, stimGroup, category):
         print(category)
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
@@ -104,9 +104,9 @@ class Database:
         SELECT a.LFP_data, a.wavelet_data, s.timeStart, s.timeStop, s.freqScale, s.xBinsWavelet, s.yBinsWavelet
         FROM arrays a
         JOIN sessions s ON a.session = s.session
-        WHERE a.channelNumber = %s AND s.subject = %s AND s.stimulus_group = %s AND s.category = %s
+        WHERE a.channelNumber = %s AND s.subject AND s.run = %s AND s.stimGroup = %s AND s.category = %s
         """
-        cursor.execute(query, (channel, subject, stimGroup, category))
+        cursor.execute(query, (channel, subject, run, stimGroup, category))
         channelArrays = []
         timeStart, timeStop, freqScale = None, None, None
 
@@ -133,8 +133,10 @@ def get_chans():
     subject = args.get('subject')
     category = args.get('group')
     stimGroup=args.get('stimGroup')
+    run = args.get('run')
+
     db = Database()
-    chanNumbers, chanLabels = db.get_chans(subject, stimGroup, category)
+    chanNumbers, chanLabels = db.get_chans(subject, run, stimGroup, category)
     print(chanNumbers)
 
     return jsonify({
@@ -149,17 +151,17 @@ def run_ANOVA():
     subject = args.get('subject')
     currentChannel = args.get('currentChannel')
 
+    run = args.get('run')
     allGroups = args.get('allGroups')
     stimGroup = args.get('stimGroup')
     excludedTrials = args.get('excludedTrialsContainer')
-    print(currentChannel)
 
     db = Database()
     
     ANOVAforWavelet = []
     ANOVAforLFP = []
     for category in allGroups:
-        arrayList, timeStart, timeStop, freqScale = db.get_trialData(currentChannel, subject, stimGroup, category)
+        arrayList, timeStart, timeStop, freqScale = db.get_trialData(currentChannel, subject, run, stimGroup, category)
     
         LFParrays = [item["LFP"] for item in arrayList]
         Waveletarrays = [item["wavelet"] for item in arrayList]
@@ -203,9 +205,10 @@ def serve_data():
     currentChannel = args.get('currentChannel')
     meanTrials = args.get('meanTrials')
     excludedTrials = args.get('excludedTrialsContainer')
+    run = args.get('run')
     
     db = Database()
-    arrayList, timeStart, timeStop, freqScale = db.get_trialData(currentChannel, subject, stimGroup, category)
+    arrayList, timeStart, timeStop, freqScale = db.get_trialData(currentChannel, subject, run, stimGroup, category)
     
     lfp_arrays = [item["LFP"] for item in arrayList]
     wavelet_arrays = [item["wavelet"] for item in arrayList]

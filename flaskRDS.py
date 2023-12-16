@@ -7,8 +7,8 @@ from config import DB_CONFIG
 import json
 
 app = Flask(__name__)
-CORS(app)
-# CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
+# CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
 
 
 class JsonifyWavelet:
@@ -104,7 +104,7 @@ class Database:
         SELECT a.LFP_data, a.wavelet_data, s.timeStart, s.timeStop, s.freqScale, s.xBinsWavelet, s.yBinsWavelet
         FROM arrays a
         JOIN sessions s ON a.session = s.session
-        WHERE a.channelNumber = %s AND s.subject AND s.run = %s AND s.stimGroup = %s AND s.category = %s
+        WHERE a.channelNumber = %s AND s.subject = %s AND s.run = %s AND s.stimGroup = %s AND s.category = %s
         """
         cursor.execute(query, (channel, subject, run, stimGroup, category))
         channelArrays = []

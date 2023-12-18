@@ -15,12 +15,11 @@ app = Flask(__name__)
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,  # Use the remote address as the key for rate limiting
-    default_limits=["1000 per day", "5 per minute"]  # Default rate limits
+    default_limits=["1000 per day", "10 per minute"]  # Default rate limits
 )
 
 CORS(app)
 # CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
-
 
 class JsonifyWavelet:
     def __init__(self, data,timeStart,timeStop,freqScale):
@@ -254,8 +253,26 @@ def serve_data():
     trialsWavelet = converterWavelet.slice_trials()
     trialsLFP = converterLFP.slice_trials()
 
-
     return jsonify({
         "trialsWavelet": trialsWavelet,
         "trialsLFP": trialsLFP
+    })
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    json_data = json.loads(request.form['json_data'])
+    timeStart = json_data['timeStart']
+    timeStop = json_data['timeStop']
+    freqStart = json_data['freqStart']
+    freqStop = json_data['freqStop']
+
+    waveletRequest = request.files['file']
+    waveletData = np.load(waveletRequest)
+    freqScale = np.logspace(np.log10(freqStart), np.log10(freqStop), waveletData.shape[0])
+
+    converterWavelet = JsonifyWavelet(waveletData[:,::4,:],timeStart,timeStop,freqScale)
+    trialsWavelet = converterWavelet.slice_trials()
+
+    return jsonify({
+        "trialsWavelet": trialsWavelet
     })

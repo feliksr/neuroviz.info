@@ -120,8 +120,9 @@ if __name__ == "__main__":
 
     for category in groupLabels:
         wavelet, LFP = dataLoader.get_data(eng, category)
-
-        session = db.insert_subject(conn,cursor,subject,run,stimGroup,category,lenTime,freqScale,[wavelet.shape[0],wavelet.shape[1]])
+        waveletShape = wavelet[:,::4,:,:].shape
+ 
+        session = db.insert_subject(conn,cursor,subject,run,stimGroup,category,lenTime,freqScale,[waveletShape[0],waveletShape[1]])
         print(category)
         
         delete_query = "DELETE FROM arrays WHERE session = %s"
@@ -136,7 +137,7 @@ if __name__ == "__main__":
 
             for trial in range(wavelet.shape[-2]):
                 LFP_data = LFP[:, trial, chanIdx]
-                wavelet_data = wavelet[:, :, trial, chanIdx]
+                wavelet_data = wavelet[:, ::4, trial, chanIdx]
                 
                 waveletBuffer = io.BytesIO()
                 np.savez_compressed(waveletBuffer, wavelet_data)

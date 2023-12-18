@@ -5,11 +5,21 @@ import scipy.stats as stats
 import mysql.connector
 from config import DB_CONFIG
 import json
+import io
+
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    key_func=get_remote_address,  # Use the remote address as the key for rate limiting
+    default_limits=["1000 per day", "5 per minute"]  # Default rate limits
+)
 
 app = Flask(__name__)
 # CORS(app)
 CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
 
+limiter.init_app(app)
 
 class JsonifyWavelet:
     def __init__(self, data,timeStart,timeStop,freqScale):
@@ -108,11 +118,23 @@ class Database:
         """
         cursor.execute(query, (channel, subject, run, stimGroup, category))
         channelArrays = []
-        timeStart, timeStop, freqScale = None, None, None
+
 
         for LFP_data, wavelet_data, timeStart, timeStop, freqScale, xBinsWavelet, yBinsWavelet in cursor.fetchall():
-            LFParray = np.frombuffer(LFP_data, dtype=np.int32)
-            waveletArray = np.frombuffer(wavelet_data, dtype=np.int32).reshape(xBinsWavelet,yBinsWavelet)
+            
+            LFPbuffer = io.BytesIO(LFP_data)
+            waveletBuffer = io.BytesIO(wavelet_data)
+
+            # Load Wavelet Data into NumPy Array
+
+            with np.load(waveletBuffer, allow_pickle=True) as f:
+                waveletArray = f['arr_0'] 
+
+            # Load LFP Data into NumPy Array
+            with np.load(LFPbuffer,  allow_pickle=True) as f:
+                LFParray = f['arr_0'] 
+            print(waveletArray)
+            
             channelArrays.append({
                 "LFP": LFParray,
                 "wavelet": waveletArray
@@ -120,11 +142,11 @@ class Database:
 
         cursor.close()
         conn.close()
-        freqScale_list = json.loads(freqScale)
-
-        freqScale_array = np.array(freqScale_list)
-        return channelArrays, timeStart, timeStop, freqScale_array
     
+        freqScale_list = json.loads(freqScale)
+        freqScale_array = np.array(freqScale_list)
+        return channelArrays, timeStart, timeStop, freqScale_array, xBinsWavelet, yBinsWavelet
+     
 @app.route('/chans', methods=['POST'])
     
 def get_chans():
@@ -165,8 +187,9 @@ def run_ANOVA():
     
         LFParrays = [item["LFP"] for item in arrayList]
         Waveletarrays = [item["wavelet"] for item in arrayList]
+        
         LFPdata = np.stack(LFParrays, axis=-1) 
-        print(LFPdata.shape)
+        
 
         waveletData = np.stack(Waveletarrays, axis=-1)
 
@@ -177,13 +200,13 @@ def run_ANOVA():
     for row in range(ANOVAforWavelet[0].shape[0]):
         for column in range(ANOVAforWavelet[0].shape[1]):
             _, p_val_wavelet = stats.f_oneway(ANOVAforWavelet[0][row, column], ANOVAforWavelet[1][row, column], ANOVAforWavelet[2][row, column])
-            pvals_wavelet[row, column] = p_val_wavelet
+            pvals_wavelet[row, column] = p_val_wavelet*3
     waveletANOVA = np.expand_dims(pvals_wavelet,axis=-1)
     
     pvals_LFP = np.empty(ANOVAforLFP[0].shape)
     for row in range(ANOVAforLFP[0].shape[0]):
         _, p_val_LFP = stats.f_oneway(ANOVAforLFP[0][row], ANOVAforLFP[1][row], ANOVAforLFP[2][row])
-        pvals_LFP[row] = p_val_LFP
+        pvals_LFP[row] = p_val_LFP*3
     LFPANOVA = np.expand_dims(pvals_LFP,axis=-1)  
     
     converterWaveletANOVA = JsonifyWavelet(waveletANOVA,timeStart, timeStop, freqScale)
@@ -208,13 +231,16 @@ def serve_data():
     run = args.get('run')
     
     db = Database()
-    arrayList, timeStart, timeStop, freqScale = db.get_trialData(currentChannel, subject, run, stimGroup, category)
+    arrayList, timeStart, timeStop, freqScale,xBinsWavelet, yBinsWavelet = db.get_trialData(currentChannel, subject, run, stimGroup, category)
     
-    lfp_arrays = [item["LFP"] for item in arrayList]
-    wavelet_arrays = [item["wavelet"] for item in arrayList]
-   
-    LFPdata = np.stack(lfp_arrays, axis=-1) 
-    waveletData = np.stack(wavelet_arrays, axis=-1)  
+    decompressedLFP = [item["LFP"] for item in arrayList]
+    decompressedWavelet = [item["wavelet"] for item in arrayList]
+    print(decompressedWavelet)
+    reshapedWaveletData = [arr.reshape(xBinsWavelet, yBinsWavelet) for arr in decompressedWavelet]
+
+        
+    LFPdata = np.stack(decompressedLFP, axis=-1) 
+    waveletData = np.stack(reshapedWaveletData, axis=-1)
 
     if meanTrials == True: 
         meanWavelet = np.mean(waveletData,axis=-1)

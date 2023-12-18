@@ -10,16 +10,17 @@ import io
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+app = Flask(__name__)
+
 limiter = Limiter(
+    app=app,
     key_func=get_remote_address,  # Use the remote address as the key for rate limiting
     default_limits=["1000 per day", "5 per minute"]  # Default rate limits
 )
 
-app = Flask(__name__)
-# CORS(app)
-CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
+CORS(app)
+# CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
 
-limiter.init_app(app)
 
 class JsonifyWavelet:
     def __init__(self, data,timeStart,timeStop,freqScale):

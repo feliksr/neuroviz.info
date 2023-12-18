@@ -106,7 +106,6 @@ class Database:
 
 
     def get_trialData(self, channel, subject, run, stimGroup, category):
-        print(category)
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
@@ -134,7 +133,6 @@ class Database:
             # Load LFP Data into NumPy Array
             with np.load(LFPbuffer,  allow_pickle=True) as f:
                 LFParray = f['arr_0'] 
-            print(waveletArray)
             
             channelArrays.append({
                 "LFP": LFParray,
@@ -160,7 +158,6 @@ def get_chans():
 
     db = Database()
     chanNumbers, chanLabels = db.get_chans(subject, run, stimGroup, category)
-    print(chanNumbers)
 
     return jsonify({
         "chanNumbers": chanNumbers,
@@ -184,15 +181,14 @@ def run_ANOVA():
     ANOVAforWavelet = []
     ANOVAforLFP = []
     for category in allGroups:
-        arrayList, timeStart, timeStop, freqScale = db.get_trialData(currentChannel, subject, run, stimGroup, category)
+        arrayList, timeStart, timeStop, freqScale, xBinsWavelet, yBinsWavelet = db.get_trialData(currentChannel, subject, run, stimGroup, category)
     
-        LFParrays = [item["LFP"] for item in arrayList]
-        Waveletarrays = [item["wavelet"] for item in arrayList]
-        
-        LFPdata = np.stack(LFParrays, axis=-1) 
-        
-
-        waveletData = np.stack(Waveletarrays, axis=-1)
+        decompressedLFP = [item["LFP"] for item in arrayList]
+        decompressedWavelet = [item["wavelet"] for item in arrayList]
+        reshapedWaveletData = [arr.reshape(xBinsWavelet, yBinsWavelet) for arr in decompressedWavelet]
+            
+        LFPdata = np.stack(decompressedLFP, axis=-1) 
+        waveletData = np.stack(reshapedWaveletData, axis=-1)
 
         ANOVAforWavelet.append(waveletData)
         ANOVAforLFP.append(LFPdata)
@@ -236,7 +232,6 @@ def serve_data():
     
     decompressedLFP = [item["LFP"] for item in arrayList]
     decompressedWavelet = [item["wavelet"] for item in arrayList]
-    print(decompressedWavelet)
     reshapedWaveletData = [arr.reshape(xBinsWavelet, yBinsWavelet) for arr in decompressedWavelet]
 
         

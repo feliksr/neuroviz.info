@@ -216,6 +216,7 @@ def run_ANOVA():
     })
 
 @app.route('/', methods=['POST'])
+
 def serve_data():
     args = request.json
     subject = args.get('subject')
@@ -236,6 +237,10 @@ def serve_data():
         
     LFPdata = np.stack(decompressedLFP, axis=-1) 
     waveletData = np.stack(reshapedWaveletData, axis=-1)
+    # waveletFile = 'waveletArray.npy'
+    # np.save(waveletFile, waveletData)
+    # LFPfile = 'LFParray'
+    # np.save(LFPfile, LFPdata)
 
     if meanTrials == True: 
         meanWavelet = np.mean(waveletData,axis=-1)
@@ -258,8 +263,9 @@ def serve_data():
         "trialsLFP": trialsLFP
     })
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
+@app.route('/uploadWavelet', methods=['POST'])
+
+def upload_Wavelet():
     json_data = json.loads(request.form['json_data'])
     timeStart = json_data['timeStart']
     timeStop = json_data['timeStop']
@@ -270,9 +276,26 @@ def upload_file():
     waveletData = np.load(waveletRequest)
     freqScale = np.logspace(np.log10(freqStart), np.log10(freqStop), waveletData.shape[0])
 
-    converterWavelet = JsonifyWavelet(waveletData[:,::4,:],timeStart,timeStop,freqScale)
-    trialsWavelet = converterWavelet.slice_trials()
+    converter = JsonifyWavelet(waveletData,timeStart,timeStop,freqScale)
+    trialsWavelet = converter.slice_trials()
 
     return jsonify({
         "trialsWavelet": trialsWavelet
+    })
+
+@app.route('/uploadLFP', methods=['POST'])
+def upload_LFP():
+    json_data = json.loads(request.form['json_data'])
+    timeStart = json_data['timeStart']
+    timeStop = json_data['timeStop']
+    
+    lfpRequest = request.files['file']
+    lfpData = np.load(lfpRequest)
+
+    converter = JsonifyLFP(lfpData,timeStart,timeStop)
+
+    trialsLFP = converter.slice_trials()
+
+    return jsonify({
+        "trialsLFP": trialsLFP
     })

@@ -14,8 +14,8 @@ app = Flask(__name__)
 
 limiter = Limiter(
     app=app,
-    key_func=get_remote_address,  # Use the remote address as the key for rate limiting
-    default_limits=["1000 per day", "10 per minute"]  # Default rate limits
+    key_func=get_remote_address, 
+    default_limits=["1000 per day", "10 per minute"] 
 )
 
 CORS(app)
@@ -124,12 +124,9 @@ class Database:
             LFPbuffer = io.BytesIO(LFP_data)
             waveletBuffer = io.BytesIO(wavelet_data)
 
-            # Load Wavelet Data into NumPy Array
-
             with np.load(waveletBuffer, allow_pickle=True) as f:
                 waveletArray = f['arr_0'] 
 
-            # Load LFP Data into NumPy Array
             with np.load(LFPbuffer,  allow_pickle=True) as f:
                 LFParray = f['arr_0'] 
             
@@ -269,12 +266,12 @@ def upload_Wavelet():
     json_data = json.loads(request.form['json_data'])
     timeStart = json_data['timeStart']
     timeStop = json_data['timeStop']
-    freqStart = json_data['freqStart']
-    freqStop = json_data['freqStop']
+    freqLow = json_data['freqLow']
+    freqHigh = json_data['freqHigh']
 
     waveletRequest = request.files['file']
     waveletData = np.load(waveletRequest)
-    freqScale = np.logspace(np.log10(freqStart), np.log10(freqStop), waveletData.shape[0])
+    freqScale = np.logspace(np.log10(freqLow), np.log10(freqHigh), waveletData.shape[0])
 
     converter = JsonifyWavelet(waveletData,timeStart,timeStop,freqScale)
     trialsWavelet = converter.slice_trials()

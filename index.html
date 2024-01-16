@@ -124,7 +124,16 @@
     </div>
 
     <h1 id="uploadFile">Or Upload File</h1>
+    
+    <form id="dataForm">
 
+        <input type="text" id="freqLow" class= 'inputValues' placeholder="Set Min Frequency (Hz)">
+        <input type="text" id="freqHigh" class= 'inputValues' placeholder="Set Max Frequency  (&lt;200Hz)">
+        
+        <input type="text" id="timeStart" class= 'inputValues timeInput' placeholder="Set Time Start (sec)">
+        <input type="text" id="timeStop" class= 'inputValues timeInput' placeholder="Set Time End (sec)">
+    </form>
+    
     <div id="uploadDiv">
         
         <button id="uploadWavelet" class = 'uploadButton' disabled>
@@ -140,15 +149,6 @@
       
     </div>   
 
-    <form id="dataForm">
-
-        <input type="text" id="freqLow" class= 'inputValues' placeholder="Set Min Frequency (Hz)">
-        <input type="text" id="freqHigh" class= 'inputValues' placeholder="Set Max Frequency  (&lt;200Hz)">
-        
-        <input type="text" id="timeStart" class= 'inputValues timeInput' placeholder="Set Time Start (sec)">
-        <input type="text" id="timeStop" class= 'inputValues timeInput' placeholder="Set Time End (sec)">
-    </form>
-  
 
     <script src= "https://d3js.org/d3.v5.min.js"></script>
 

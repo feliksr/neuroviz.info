@@ -5,7 +5,6 @@ import numpy as np
 import matlab.engine
 import io
 
-
 createNewDatabase=False
 
 class MatlabDataLoader:
@@ -84,7 +83,7 @@ class Database:
         
         conn.commit()
 
-    def count_rows(self, conn, cursor, table_name):
+    def count_rows(self, cursor, table_name):
 
         query = f"SELECT COUNT(*) FROM {table_name}"
         cursor.execute(query)
@@ -120,8 +119,9 @@ if __name__ == "__main__":
 
     for category in groupLabels:
         wavelet, LFP = dataLoader.get_data(eng, category)
-        waveletShape = wavelet[:,::4,:,:].shape
- 
+        waveletShape = wavelet[:,::2,:,:].shape
+        print(waveletShape) 
+        KeyboardInterrupt
         session = db.insert_subject(conn,cursor,subject,run,stimGroup,category,lenTime,freqScale,[waveletShape[0],waveletShape[1]])
         print(category)
         
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
             for trial in range(wavelet.shape[-2]):
                 LFP_data = LFP[:, trial, chanIdx]
-                wavelet_data = wavelet[:, ::4, trial, chanIdx]
+                wavelet_data = wavelet[:, ::2, trial, chanIdx]
                 
                 waveletBuffer = io.BytesIO()
                 np.savez_compressed(waveletBuffer, wavelet_data)
@@ -152,8 +152,8 @@ if __name__ == "__main__":
 
             db.insert_subjectData(conn, cursor, data_list)
 
-    arrays_row_count = db.count_rows(conn,cursor,"arrays")
-    print(f"Number of rows in 'arrays' table: {arrays_row_count}")
+    # arrays_row_count = db.count_rows(conn,cursor,"arrays")
+    # print(f"Number of rows in 'arrays' table: {arrays_row_count}")
 
     cursor.close()
     conn.close()

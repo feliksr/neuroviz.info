@@ -1,12 +1,13 @@
 clear
-patientNum = 4;
-groupCat = 'targetStatus';
+patientNum = 3;
+groupCat = 'targetStimulus';
 alignSpot = 'response';
-stimGroup = 'Stimulus Type';
+stimGroup = 'Target Stimulus';
 subject = 'YDX';
 lenTime = [-2 1];
 
 [LFP, wavelet,dataParams] = convert(patientNum,groupCat,alignSpot,lenTime);
+run = dataParams.nRun;
 chanLabels=dataParams.channelLabel;
 chanNums=dataParams.chanNum;
 freqScale=(1./dataParams.scale)';

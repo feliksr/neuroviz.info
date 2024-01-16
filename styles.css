@@ -1,0 +1,193 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #464444;
+    color: #ffffff;
+}
+
+#homeButton {
+    color: rgb(0, 0, 255);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+#loadingText {
+    font-size: 30px;
+    text-align: center
+}
+
+#containers{
+    display: flex;
+    align-items: center;  
+    justify-content: center;
+          
+}
+
+#heatmap-wrapper,  #container4, #indexView  {
+    display: flex;
+    flex-direction: column; 
+    align-items: center;  
+}
+
+#controls, #trialScroll {
+    text-align: center;
+    padding: 10px;
+}
+
+
+#controls label, #controls span {
+    margin-right: 10px;
+    font-size: 1.5em;  
+}
+
+input[type=range] {
+    width: 50%; 
+}
+
+.x-axis text, .y-axis text {
+    font-size: 18px;
+}
+
+svg .x-axis-label { 
+    font-size: 20px;
+    fill: #ffffff;
+    text-anchor: middle
+}
+
+svg .dragColorbarLabel{
+    font-size: 15px;
+    fill: #ffffff;
+
+}
+
+svg .LFP-label {
+    font-size: 20px;
+    fill: #ffffff;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-anchor: middle;
+}
+
+#colorbarLabel, #yAxisLabel {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 24px;
+    display: inline-block;
+}
+
+.button, .groupButton, #uploadWavelet, #uploadLFP {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    border-radius: 5px;
+}
+
+#meanTrialsButton, #meanChannelsButton, .ANOVAbutton, #excludeTrialButton, #excludeChannelButton, #allANOVA{
+    padding: 5px 10px;
+    font-size: 1.1em;
+    border-radius: 5px; 
+}
+
+#channelButtonContainer, #groupButtonContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+
+.groupButton.active, .ANOVAbutton.active, #meanTrialsButton.active, #excludeTrialButton.active, #allANOVA.active {
+    background-color: #555;
+    color: white;
+}
+
+.colorbar-rect {
+    cursor: pointer;
+  }
+
+.excluded-trials-container{
+    width: 10%;
+    display: flex;
+    justify-content: center;  
+    align-items: center; 
+}
+
+#textContainer {
+    flex-grow: 0; 
+    flex-shrink: 0; 
+    width: 500px; 
+    overflow: hidden; 
+    text-align: left;
+}
+
+#sliderContainer{
+    width: 1000px;
+    text-align: right;
+    overflow: hidden; 
+}
+
+#uploadDiv{
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    gap: 10px;
+}
+
+#stimGroupWrapper {
+    display: flex;
+    justify-content: center;
+    position: relative; 
+}
+
+#stimText {
+    position: absolute;
+    transform: translate(-450px, 15%);
+}
+
+.stimGroup{
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 1.5em;
+    margin: 20px 20px
+}
+
+#uploadDiv button {
+    position: relative; 
+}
+
+.tooltipText {
+    display: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ffffff;
+    text-align: center;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+#uploadDiv button:hover .tooltipText {
+    display: block;
+}
+
+#dataForm{
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.inputValues, .timeInput {
+    padding: 5px 10px;
+    font-size: 1.1em;
+    border-radius: 5px; 
+    text-align: center;
+    width: 250px;
+    font-weight: bold;
+}
+
+
+#uploadFile{
+    text-align: center;
+    padding-top: 100px;
+}
+

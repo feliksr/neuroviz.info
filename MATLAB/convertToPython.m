@@ -1,8 +1,8 @@
 clear
 patientNum = 3;
-groupCat = 'targetStimulus';
+groupCat = 'stimulusIdentity';
 alignSpot = 'response';
-stimGroup = 'Target Stimulus';
+stimGroup = 'Stimulus Identity';
 subject = 'YDX';
 lenTime = [-2 1];
 

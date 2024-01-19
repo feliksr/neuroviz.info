@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     for category in groupLabels:
         wavelet, LFP = dataLoader.get_data(eng, category)
-        waveletShape = wavelet[:,::2,:,:].shape
+        waveletShape = wavelet[:,::4,:,:].shape
         print(waveletShape) 
         KeyboardInterrupt
         session = db.insert_subject(conn,cursor,subject,run,stimGroup,category,lenTime,freqScale,[waveletShape[0],waveletShape[1]])
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
             for trial in range(wavelet.shape[-2]):
                 LFP_data = LFP[:, trial, chanIdx]
-                wavelet_data = wavelet[:, ::2, trial, chanIdx]
+                wavelet_data = wavelet[:, ::4, trial, chanIdx]
                 
                 waveletBuffer = io.BytesIO()
                 np.savez_compressed(waveletBuffer, wavelet_data)

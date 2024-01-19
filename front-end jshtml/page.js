@@ -1,7 +1,6 @@
 // page.js
 class Page{
     constructor() {
-        // access server locally or online
         this.url = 'https://neuroviz.info/api/'
 
         // Initial page parameters

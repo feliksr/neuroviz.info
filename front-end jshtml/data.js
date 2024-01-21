@@ -1,5 +1,6 @@
-// page.js
-class Page{
+// data.js
+
+class Data{
     constructor() {
         this.url = 'https://neuroviz.info/api/'
 
@@ -33,6 +34,9 @@ class Page{
     }
 
     async get_ChannelNumbers(){
+        
+        const loadingText = document.getElementById('loadingText')
+        loadingText.style.display = "block"; 
 
         const args = {
 
@@ -238,4 +242,4 @@ class Page{
     }
 } 
 
-const page = new Page;
+const page = new Data;

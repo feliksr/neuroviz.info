@@ -76,7 +76,7 @@ svg .LFP-label {
     display: inline-block;
 }
 
-.button, .groupButton, #uploadWavelet, #uploadLFP {
+.button, .groupButton {
     padding: 10px 20px;
     font-size: 1.2em;
     border-radius: 5px;
@@ -125,71 +125,4 @@ svg .LFP-label {
     overflow: hidden; 
 }
 
-#uploadDiv{
-    display: flex;
-    justify-content: center;
-    padding-top: 10px;
-    padding-bottom: 20px;
-    gap: 10px;
-}
-
-#stimGroupWrapper {
-    display: flex;
-    justify-content: center;
-    position: relative; 
-}
-
-#stimText {
-    position: absolute;
-    transform: translate(-450px, 15%);
-}
-
-.stimGroup{
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 1.5em;
-    margin: 20px 20px
-}
-
-#uploadDiv button {
-    position: relative; 
-}
-
-.tooltipText {
-    display: none;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #ffffff;
-    text-align: center;
-    padding: 5px;
-    border-radius: 5px;
-    width: 300px;
-}
-
-#uploadDiv button:hover .tooltipText {
-    display: block;
-}
-
-#dataForm{
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding-bottom: 20px;
-}
-
-.inputValues, .timeInput {
-    padding: 5px 10px;
-    font-size: 1.1em;
-    border-radius: 5px; 
-    text-align: center;
-    width: 250px;
-    font-weight: bold;
-}
-
-
-#uploadFile{
-    text-align: center;
-    padding-top: 100px;
-}
 

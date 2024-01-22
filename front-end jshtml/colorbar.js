@@ -5,12 +5,12 @@ class Colorbar {
         this.width = 30;
         this.numStops = 30;
 
-        document.getElementById('pVal').addEventListener('change', (event) => {
-            this.heatmap.maxPower = event.target.value;
-            this.heatmap.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([this.heatmap.maxPower,0])
-            this.heatmap.drawHeatmap();
-            this.setColorbarScale();
-        });
+        // document.getElementById('pVal').addEventListener('change', (event) => {
+        //     this.heatmap.maxPower = event.target.value;
+        //     this.heatmap.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([this.heatmap.maxPower,0])
+        //     this.heatmap.drawHeatmap();
+        //     this.setColorbarScale();
+        // });
     }
 
     initColorbar() {

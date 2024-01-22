@@ -28,7 +28,7 @@ class homeButtons{
         this.stimGroupButton.forEach(button => {
             button.addEventListener('click', (event) => {
                 let buttonText = event.target.textContent; 
-                window.location.href = 'data.html?params=' + encodeURIComponent(buttonText);
+                window.location.href = 'database.html?params=' + encodeURIComponent(buttonText);
             });
         })
     }

@@ -1,14 +1,19 @@
 //buttons.js
 
 class Buttons{
-    constructor(page){
-        this.page = page
+    constructor(){
+
+        this.groupTypes = {
+            'Target Stimulus' : ['Soccerball','Trophy','Vase'],
+            'Stimulus Type' : ['Target','Distractor','Irrelevant'],
+            'Stimulus Identity' :  ['Soccerball', 'Trophy', 'Vase']
+        }
 
         const ids = [
-            'trialSlider', 'channelDisplay', 'excludeTrialButton', 'prevChan', 
+            'trialSlider', 'channelDisplay', 'excludeTrialButton', 'prevChan',
             'nextChan', 'trialNumber', 'ANOVAscroll', 'loadingText',
             'heatmapView', 'allANOVA', 'pVal', 'pValDiv', 'trialScroll', 
-            'channelScroll', 'channelNumber', 'channelButtonContainer', 'groupButtonContainer', 'containerWrapper'
+            'channelScroll', 'channelNumber', 'channelButtonContainer', 'groupButtonContainer'
         ];
         
         ids.forEach(id => {
@@ -19,76 +24,57 @@ class Buttons{
         this.excludedContainers =  document.querySelectorAll('.excluded-trials-container');
         this.excludedContainers.forEach(container => container.style.display = 'none');
 
-        this.stimGroups = document.querySelectorAll('.stimGroup')
-        this.groupButtons = document.querySelectorAll('.groupButton')
     }
 
-    initialize(){
-        this.set_homeButton()
-        this.set_groupButtons()
+    initialize() {
+        this.init_groupButtons()
         this.set_channelButtons()
+
         this.set_excludeTrialsButton()
+        this.set_ANOVA()
         // this.set_meanTrials()
     }
 
-    init_ANOVA(){
-        this.set_ANOVA()
-        this.set_allANOVA()
-    }
+    set_groupButton(groupButton,stimGroup,allGroups){
 
-    set_groupButtons(){
-
-        // this.excludedTrialsContainer = {}
-
-        this.groupButtons.forEach((button) => {
-            button.addEventListener('click', async (event) => {
-                this.groupButtons.forEach(btn => btn.classList.remove('active'));
+        groupButton.addEventListener('click', async (event) => {
+                const buttons = document.querySelectorAll('.groupButton');
+                buttons.forEach(btn => btn.classList.remove('active'));                
 
                 event.target.classList.add('active'); 
-
-                this.page.group = event.target.textContent;
-                this.page.trial = 0;
-
-                window.location.href = 'data.html'
+                let data = new Data(stimGroup,(event.target.textContent),allGroups)
 
                 // this.excludedContainers.forEach(container => container.style.display = 'none');
                 // this.excludedTrialsContainer[this.page.group].style.display = 'block'
 
-                
+                await data.get_ChannelNumbers()
+                this.channelDisplay.textContent = `Channel ${data.chanNumbers[data.channelIdx]} ${data.chanLabels[data.channelIdx]}`;
+                const excludedTrialsContainer = {};
+                await data.getData(excludedTrialsContainer);
 
-                // await this.page.get_ChannelNumbers()
-                // this.channelDisplay.textContent = `Channel ${this.page.chanNumbers[this.page.channelIdx]} ${this.page.chanLabels[this.page.channelIdx]}`;
-
-                // await this.page.getData();
-        
-                // this.trialSlider.previousElementSibling.textContent = 'Trial:'
-                // this.containerWrapper.style.display = 'block'
-            })
-        });
-    }
-   
-    set_homeButton(){
-
-        document.getElementById('homeButton').addEventListener('click', () => {
-            
-            document.querySelectorAll('.groupButton').forEach(button => {
-               
-                    button.classList.remove('active');
-                    button.disabled = false;
-            });
-    
-            document.querySelectorAll('.uploadButton').forEach(button => {
-
-               button.disabled = false;
-
-            });
-
-            delete this.page.allWaveletTrials
-            delete this.page.allLFPTrials
-            console.log(this.page.allWaveletTrials)
-
+                this.heatmapView.style.display = 'block'
+                this.trialSlider.previousElementSibling.textContent = 'Trial:'
         })
     }
+
+    init_groupButtons(){
+
+        const params = new URLSearchParams(window.location.search);
+        const stimGroup = params.get('params');
+
+        let allGroups  = this.groupTypes[stimGroup];
+
+        allGroups.forEach(str => {
+            let groupButton = document.createElement('button');
+            groupButton.textContent = str;
+            groupButton.className = 'groupButton';
+            this.groupButtonContainer.appendChild(groupButton)
+            this.set_groupButton(groupButton,stimGroup,allGroups)
+        });
+    }
+
+
+   
 
     set_excludeTrialsButton(){
 
@@ -197,32 +183,7 @@ class Buttons{
         });
     }
 
-    set_allANOVA(){
-
-        this.allANOVA.addEventListener('click', async () =>{
-
-            document.querySelectorAll('.ANOVAbutton').forEach(button => {
-                button.disabled = !button.disabled 
-            })
-
-            this.allANOVA.classList.toggle('active');
-            this.page.allANOVA = !this.page.allANOVA; 
-            
-            await this.page.getData();
-            
-            if (this.page.allANOVA){
-                this.channelButtonContainer.style.display = 'none' ;
-                this.ANOVAscroll.style.display = 'flex'
-
-            }else{
-
-                this.ANOVAscroll.style.display = 'none'
-                this.channelButtonContainer.style.display = 'flex' ;
-    
-            }
-        })
-    }
-
 }
     
-window.Buttons = Buttons;
+const buttons = new Buttons;
+buttons.initialize();

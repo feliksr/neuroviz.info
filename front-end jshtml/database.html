@@ -7,20 +7,19 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 
-<body>
+<body>        
+    
+    <a href="home.html" id="homeButton">Return Home</a>
+
     <div id="heatmapView" style="display: none;">
         
-        <a href="home.html" id="homeButton">Return Home</a>
-
-        <div id = containerWrapper>
-
         <div id="channelButtonContainer">
             <button id="prevChan" class="button">Previous Channel</button>
             <h1 id="channelDisplay" style="text-align:center;"></h1>
             <button id="nextChan" class="button">Next Channel</button>
         </div>
         
-        
+
         <div id = "containers">
             
             <span id="yAxisLabel">Frequency  (Hz)</span>
@@ -72,27 +71,13 @@
                 <button id="meanChannelsButton">Average Channels</button>
 
             </div>
-            
-        </div>
-           
-        </div>
 
-        <h1 id= "loadingText" >Loading...</h1>
-
+        </div>
     </div>
+    
+    <h1 id= "loadingText" style = 'display:none;'>Loading...</h1>
 
-    <div id="groupButtonContainer">
-
-        <button class="groupButton"></button>
-        <div  class="excluded-trials-container"></div>
-
-        <button class="groupButton"></button>
-        <div class="excluded-trials-container"></div>
-
-        <button class="groupButton"></button>
-        <div class="excluded-trials-container"></div>
-
-    </div>    
+    <div id="groupButtonContainer"></div>    
 
 </body>
 

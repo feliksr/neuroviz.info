@@ -1,15 +1,13 @@
 // data.js
 
 class Data{
-    constructor() {
+    constructor(stimGroup,category,allGroups) {
         this.url = 'https://neuroviz.info/api/'
 
         // Initial page parameters
-        this.groupTypes = {
-            'Target Stimulus' : ['Soccerball','Trophy','Vase'],
-            'Stimulus Type' : ['Target','Distractor','Irrelevant'],
-            'Stimulus Identity' :  ['Soccerball', 'Trophy', 'Vase']
-        }
+        this.stimGroup = stimGroup
+        this.allGroups = allGroups
+        this.group = category
         this.subject = 'YDX'
         this.trial = 0
         this.channelIdx = 0
@@ -28,9 +26,6 @@ class Data{
 
         this.maxRetries = 5;
         this.initialDelay = 5000; // in milliseconds
-        this.allButtons = new window.Buttons(this)
-        this.allButtons.initialize()      
-
     }
 
     async get_ChannelNumbers(){
@@ -47,10 +42,10 @@ class Data{
 
         }
 
-        this.responseData = await this.fetchDataWithRetry(this.url + 'chans', args, this.maxRetries, this.initialDelay);
+        let responseData = await this.fetchDataWithRetry(this.url + 'chans', args, this.maxRetries, this.initialDelay);
    
-        this.chanNumbers = this.responseData.chanNumbers
-        this.chanLabels = this.responseData.chanLabels
+        this.chanNumbers = responseData.chanNumbers
+        this.chanLabels = responseData.chanLabels
     }
 
 
@@ -85,7 +80,7 @@ class Data{
     }
     
 
-    async getData() {
+    async getData(excludedTrialsContainer) {
         console.log(this.chanNumbers[this.channelIdx])
         
         const trialSlider  = document.getElementById('trialSlider')
@@ -101,9 +96,9 @@ class Data{
 
             stimGroup: this.stimGroup,
             group: this.group,
-            allGroups: this.groupTypes[this.stimGroup],
+            allGroups: this.allGroups,
             subject: this.subject,
-            excludedTrialsContainer: this.allButtons.excludedTrialsContainer,
+            excludedTrialsContainer: excludedTrialsContainer,
             meanTrials: this.meanTrials,
             ANOVA: this.ANOVA,
             allANOVA: this.allANOVA,
@@ -242,4 +237,4 @@ class Data{
     }
 } 
 
-const page = new Data;
+window.data = Data;

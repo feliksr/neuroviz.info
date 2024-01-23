@@ -8,73 +8,77 @@ class Buttons{
             'Stimulus Type' : ['Target','Distractor','Irrelevant'],
             'Stimulus Identity' :  ['Soccerball', 'Trophy', 'Vase']
         }
-
-        const ids = [
-            'trialSlider', 'channelDisplay', 'excludeTrialButton', 'prevChan',
-            'nextChan', 'trialNumber', 'ANOVAscroll', 'loadingText',
-            'heatmapView', 'allANOVA', 'pVal', 'pValDiv', 'trialScroll', 
-            'channelScroll', 'channelNumber', 'channelButtonContainer', 'groupButtonContainer'
-        ];
         
-        ids.forEach(id => {
-            this[id] = document.getElementById(id);
-            console.log(this[id])
-        });
-
+              
         this.excludedContainers =  document.querySelectorAll('.excluded-trials-container');
         this.excludedContainers.forEach(container => container.style.display = 'none');
 
+        
+    }
+    get_heatmap(){
+        const ids = [
+            'trialSlider', 'channelDisplay', 'excludeTrialButton', 'loadingText',
+            'nextChan', 'trialNumber', 'trialScroll', 'prevChan', 'groupButtonContainer',
+            'channelScroll', 'channelNumber', 'channelButtonContainer', 'heatmapView'
+        ];
+
+        fetch('heatmap.html')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('heatmapView').innerHTML = html;
+
+            ids.forEach(id => {
+                this[id] = document.getElementById(id);
+                console.log(this[id])
+            });
+
+            this.initialize()
+        })
+        .catch(error => console.error('Error:', error));
     }
 
     initialize() {
         this.init_groupButtons()
         this.set_channelButtons()
-
-        this.set_excludeTrialsButton()
-        this.set_ANOVA()
+        // this.set_excludeTrialsButton()
+        // this.set_ANOVA()
         // this.set_meanTrials()
     }
 
-    set_groupButton(groupButton,stimGroup,allGroups){
+    set_groupButton(groupButton){
 
         groupButton.addEventListener('click', async (event) => {
                 const buttons = document.querySelectorAll('.groupButton');
                 buttons.forEach(btn => btn.classList.remove('active'));                
-
                 event.target.classList.add('active'); 
-                let data = new Data(stimGroup,(event.target.textContent),allGroups)
-
+                this.data.group = event.target.textContent;
                 // this.excludedContainers.forEach(container => container.style.display = 'none');
                 // this.excludedTrialsContainer[this.page.group].style.display = 'block'
-
-                await data.get_ChannelNumbers()
-                this.channelDisplay.textContent = `Channel ${data.chanNumbers[data.channelIdx]} ${data.chanLabels[data.channelIdx]}`;
-                const excludedTrialsContainer = {};
-                await data.getData(excludedTrialsContainer);
-
+                
+                await this.data.getData();
                 this.heatmapView.style.display = 'block'
-                this.trialSlider.previousElementSibling.textContent = 'Trial:'
         })
     }
-
-    init_groupButtons(){
+ 
+    async init_groupButtons() {
 
         const params = new URLSearchParams(window.location.search);
         const stimGroup = params.get('params');
 
         let allGroups  = this.groupTypes[stimGroup];
-
+        
+        this.data = new Data(stimGroup,allGroups);
+        await this.data.get_ChannelNumbers();
+        
         allGroups.forEach(str => {
             let groupButton = document.createElement('button');
             groupButton.textContent = str;
             groupButton.className = 'groupButton';
             this.groupButtonContainer.appendChild(groupButton)
-            this.set_groupButton(groupButton,stimGroup,allGroups)
+            this.set_groupButton(groupButton)
         });
     }
-
-
-   
+  
 
     set_excludeTrialsButton(){
 
@@ -116,20 +120,16 @@ class Buttons{
 
         this.prevChan.addEventListener('click', () => {
 
-            if (this.page.channelIdx > 0) {
-                this.page.channelIdx--;
-                this.channelDisplay.textContent = `Channel ${this.page.chanNumbers[this.page.channelIdx]} ${this.page.chanLabels[this.page.channelIdx]}`;
-
-                this.page.getData();
+            if (this.data.channelIdx > 0) {
+                this.data.channelIdx--;
+                this.data.getData();
             }
         })
         
         this.nextChan.addEventListener('click', () => {
 
-            this.page.channelIdx++;
-            this.channelDisplay.textContent = `Channel ${this.page.chanNumbers[this.page.channelIdx]} ${this.page.chanLabels[this.page.channelIdx]}`;
-
-            this.page.getData();
+            this.data.channelIdx++;
+            this.data.getData();
         })
     }
 
@@ -184,6 +184,8 @@ class Buttons{
     }
 
 }
-    
+
 const buttons = new Buttons;
-buttons.initialize();
+buttons.get_heatmap();
+
+

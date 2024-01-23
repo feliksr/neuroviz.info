@@ -1,13 +1,12 @@
 // data.js
 
 class Data{
-    constructor(stimGroup,category,allGroups) {
+    constructor(stimGroup,allGroups) {
         this.url = 'https://neuroviz.info/api/'
 
         // Initial page parameters
         this.stimGroup = stimGroup
         this.allGroups = allGroups
-        this.group = category
         this.subject = 'YDX'
         this.trial = 0
         this.channelIdx = 0
@@ -29,23 +28,22 @@ class Data{
     }
 
     async get_ChannelNumbers(){
-        
         const loadingText = document.getElementById('loadingText')
         loadingText.style.display = "block"; 
 
         const args = {
-
             stimGroup: this.stimGroup,
-            group: this.group,
+            group: this.allGroups[0],
             subject: this.subject,
             run: this.run
-
         }
 
         let responseData = await this.fetchDataWithRetry(this.url + 'chans', args, this.maxRetries, this.initialDelay);
-   
+
         this.chanNumbers = responseData.chanNumbers
         this.chanLabels = responseData.chanLabels
+
+        loadingText.style.display = "none"; 
     }
 
 
@@ -80,9 +78,10 @@ class Data{
     }
     
 
-    async getData(excludedTrialsContainer) {
+    async getData() {
         console.log(this.chanNumbers[this.channelIdx])
-        
+        document.getElementById('channelDisplay').textContent = `Channel ${this.chanNumbers[this.channelIdx]} ${this.chanLabels[this.channelIdx]}`;
+
         const trialSlider  = document.getElementById('trialSlider')
         trialSlider.disabled = true 
 
@@ -91,9 +90,8 @@ class Data{
 
         const loadingText = document.getElementById('loadingText')
         loadingText.style.display = "block"; 
-
+        let excludedTrialsContainer={};
         const args = {
-
             stimGroup: this.stimGroup,
             group: this.group,
             allGroups: this.allGroups,
@@ -107,12 +105,7 @@ class Data{
        
         if (!this.ANOVA){
             
-            this.allWaveletTrials = {}
-            this.allWaveletChannels = {}
-            this.allLFPChannels = {}
-            this.allLFPTrials = {}
             this.numChans = 1
-            
             args.currentChannel = this.chanNumbers[this.channelIdx]
 
             try {
@@ -120,8 +113,7 @@ class Data{
             } catch (error) {
                 console.error('Failed to fetch data:', error);
             }
-            
-              
+                          
             this.allWaveletTrials = this.responseData.trialsWavelet
             this.allLFPTrials = this.responseData.trialsLFP
 
@@ -133,14 +125,11 @@ class Data{
         } else {
         
             if (this.allANOVA){
-
              this.numChans = this.chanNumbers.length
                 // this.numChans = 5
                  
             }else{
-
                 this.numChans = 1
-
             }
             
             for (let chans = 0; chans < (this.numChans); chans++) { 
@@ -171,18 +160,17 @@ class Data{
 
         }            
            
-        loadingText.style.display = "none"; 
-       
         this.set_Wavelet()
         this.set_LFP()
+
+        loadingText.style.display = "none"; 
+
     }
 
-    
-    
+
     set_Wavelet() {
 
         if (this.allWaveletTrials){
-            console.log(this.allWaveletTrials)
             this.containers.forEach((container,index) => {
                 const freqBin = this.frequencyBins[index];
                 const heatmap = new window.Heatmap(this,container,freqBin);

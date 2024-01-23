@@ -1,7 +1,6 @@
 // anova.js
 
 
-
     set_channelButtons(){
 
         this.prevChan.addEventListener('click', () => {
@@ -22,6 +21,7 @@
             this.page.getData();
         })
     }
+    
     set_homeButton(){
 
         document.getElementById('homeButton').addEventListener('click', () => {
@@ -44,7 +44,31 @@
 
         })
     }
+    set_allANOVA(){
 
+        this.allANOVA.addEventListener('click', async () =>{
+
+            document.querySelectorAll('.ANOVAbutton').forEach(button => {
+                button.disabled = !button.disabled 
+            })
+
+            this.allANOVA.classList.toggle('active');
+            this.page.allANOVA = !this.page.allANOVA; 
+            
+            await this.page.getData();
+            
+            if (this.page.allANOVA){
+                this.channelButtonContainer.style.display = 'none' ;
+                this.ANOVAscroll.style.display = 'flex'
+
+            }else{
+
+                this.ANOVAscroll.style.display = 'none'
+                this.channelButtonContainer.style.display = 'flex' ;
+    
+            }
+        })
+    }
 
 }
 

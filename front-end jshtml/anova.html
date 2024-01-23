@@ -10,12 +10,26 @@
 
 <body>
 
-<div id="pValDiv" style="display: none;">
-    <button class="ANOVAbutton">ANOVA</button>
-    <span id="pValId"> pValue = </span>
-    <input type="text" id= "pVal" value= "0.10" style="width: 75px; height: 24px;">
-    <button id = 'allANOVA' style = 'margin-left : 100px'>All Channels</button>
-    <span id="warning">Warning! Loading Time 15 minutes</span>
+    <div id="pValDiv" style="display: none;">
+
+        <button class="ANOVAbutton">ANOVA</button>
+        <span id="pValId"> pValue = </span>
+        <input type="text" id= "pVal" value= "0.10" style="width: 75px; height: 24px;">
+        <button id = 'allANOVA' style = 'margin-left : 100px'>All Channels</button>
+        <span id="warning">Warning! Loading Time 15 minutes</span>
+
     </div>
 
+    <div id = 'ANOVAscroll' style="display: none;">
+                
+        <div id = 'sliderContainer'>
+            <label for="ANOVAslider">Channel: </label>
+            <input type="range" id="ANVOAslider">
+        </div>
+
+        <div id= 'textContainer'>
+            <span id="channelNumber"></span>
+        </div>
+
+    </div>
 </body>

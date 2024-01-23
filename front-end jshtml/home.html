@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="home.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 
 <body>
@@ -17,30 +17,11 @@
             <button class='stimGroupButton'>Target Stimulus</button>    
         </div>
 
-    <h1 id="uploadText">Or Upload File</h1>
-
-        <input type="file" id="LFPfile" accept=".npy" style="display: none;" />
-        <input type="file" id="waveletFile" accept=".npy" style="display: none;" />
-
-        <form id="dataForm">
-            <input type="text" id="freqLow" class= 'inputValues' placeholder="Set Min Frequency (Hz)">
-            <input type="text" id="freqHigh" class= 'inputValues' placeholder="Set Max Frequency  (&lt;200Hz)">
-            
-            <input type="text" id="timeStart" class= 'inputValues timeInput' placeholder="Set Time Start (sec)">
-            <input type="text" id="timeStop" class= 'inputValues timeInput' placeholder="Set Time End (sec)">
-        </form>
-
-        <div id="uploadButtonsDiv">
-            <button id="uploadWavelet" class = 'uploadButtons' disabled>
-                Upload Wavelet
-                <span class="tooltipText">Frequency x Time x Trials for each (.npy) file/channel</span>
-            </button>
-            
-            <button id="uploadLFP" class = 'uploadButtons' disabled>
-                Upload LFP
-                <span class="tooltipText">Time x Trials for each (.npy) file/channel </span>
-            </button>
-        </div>  
+    <h1 id="uploadText">OR</h1>
+        
+        <div id = 'uploadDiv'>
+            <button id='uploadButton'>Upload File</button>
+        </div>
 
 </body>
 

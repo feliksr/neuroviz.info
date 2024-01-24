@@ -19,7 +19,6 @@ limiter = Limiter(
 )
 
 CORS(app)
-# CORS(app, resources={r"/*": {"origins": "https://feliksr.github.io"}})
 
 class JsonifyWavelet:
     def __init__(self, data,timeStart,timeStop,freqScale):

@@ -28,7 +28,6 @@ class Buttons{
 
             ids.forEach(id => {
                 this[id] = document.getElementById(id);
-                console.log(this[id])
             });
 
             this.initialize()
@@ -50,6 +49,8 @@ class Buttons{
             this.data.meanTrials = !this.data.meanTrials
             this.meanTrialsButton.classList.toggle('active', this.data.meanTrials);
             this.data.trial = 0         
+            this.trialSlider.value = this.data.trial
+            this.trialNumber.textContent = this.data.trial
             this.data.getData();
         });
     }

@@ -2,7 +2,6 @@
 class LFPchart {
     constructor(page) {
         this.page = page
-        this.data = this.page.allLFPTrials
         this.container = '#container4'
         this.width = 1000;
         this.height = 200;
@@ -27,7 +26,8 @@ class LFPchart {
     }
     
     initialize(){
-        this.trial = this.page.trial
+        let data = this.page.allLFPTrials[this.page.trial]
+
         d3.select(this.container)
                 .select("svg")
                 .remove(); 
@@ -39,11 +39,11 @@ class LFPchart {
    
         const xScale = d3.scaleLinear()
             .rangeRound([0, this.width])
-            .domain(d3.extent(this.data[this.trial], d => d.x));
+            .domain(d3.extent(data, d => d.x));
 
         const yScale = d3.scaleLinear()
             .rangeRound([this.height, 0])
-            .domain(d3.extent(this.data[this.trial], d => d.y));
+            .domain(d3.extent(data, d => d.y));
         
         svg.append("g")
             .attr("transform", `translate(${this.width + this.margin.left}, 0)`)
@@ -79,7 +79,7 @@ class LFPchart {
         
         svg.append('path')
             .attr("transform", `translate(${this.margin.left}, 0)`)
-            .attr("d", line(this.data[this.trial]))
+            .attr("d", line(data))
             .attr("fill", "none")
             .attr("stroke", "steelblue")
             .attr("stroke-linejoin", "round")

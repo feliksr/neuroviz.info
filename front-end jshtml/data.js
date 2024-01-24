@@ -46,7 +46,6 @@ class Data{
         loadingText.style.display = "none"; 
     }
 
-
     async fetchDataWithRetry(url, args, retries, delay) {
         for (let i = 0; i < retries; i++) {
             try {
@@ -90,6 +89,7 @@ class Data{
 
         const loadingText = document.getElementById('loadingText')
         loadingText.style.display = "block"; 
+
         let excludedTrialsContainer={};
         const args = {
             stimGroup: this.stimGroup,

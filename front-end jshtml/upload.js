@@ -120,6 +120,7 @@ class Upload{
                     
         this.data.set_Wavelet()
         this.groupButtonContainer.style.display = 'none'
+        this.channelButtonContainer.style.display = 'none'
         this.loadingText.style.display = "none"; 
 
         this.heatmapView.style.display = 'block';
@@ -164,6 +165,8 @@ class Upload{
             this.data.singleTrialWavelet = this.data.allLFPTrials[this.data.trial];
             
             this.groupButtonContainer.style.display = 'none'
+            this.channelButtonContainer.style.display = 'none'
+
             this.data.set_LFP()
             this.loadingText.style.display = "none"; 
 

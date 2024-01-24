@@ -8,7 +8,6 @@ class Buttons{
             'Stimulus Type' : ['Target','Distractor','Irrelevant'],
             'Stimulus Identity' :  ['Soccerball', 'Trophy', 'Vase']
         }
-        
               
         this.excludedContainers =  document.querySelectorAll('.excluded-trials-container');
         this.excludedContainers.forEach(container => container.style.display = 'none');
@@ -19,7 +18,7 @@ class Buttons{
         const ids = [
             'trialSlider', 'channelDisplay', 'excludeTrialButton', 'loadingText',
             'nextChan', 'trialNumber', 'trialScroll', 'prevChan', 'groupButtonContainer',
-            'channelScroll', 'channelNumber', 'channelButtonContainer', 'heatmapView'
+            'channelScroll', 'channelNumber', 'channelButtonContainer', 'heatmapView', 'meanTrialsButton'
         ];
 
         fetch('heatmap.html')
@@ -40,9 +39,19 @@ class Buttons{
     initialize() {
         this.init_groupButtons()
         this.set_channelButtons()
+        this.set_meanTrialsButton()
         // this.set_excludeTrialsButton()
         // this.set_ANOVA()
-        // this.set_meanTrials()
+        
+    }
+
+    set_meanTrialsButton(){
+        this.meanTrialsButton.addEventListener('click', () => {
+            this.data.meanTrials = !this.data.meanTrials
+            this.meanTrialsButton.classList.toggle('active', this.data.meanTrials);
+            this.data.trial = 0         
+            this.data.getData();
+        });
     }
 
     set_groupButton(groupButton){

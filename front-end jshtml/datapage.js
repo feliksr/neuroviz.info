@@ -39,8 +39,9 @@ class Buttons{
         this.init_groupButtons()
         this.set_channelButtons()
         this.set_meanTrialsButton()
-        // this.set_excludeTrialsButton()
         // this.set_ANOVA()
+        // this.set_excludeTrialButton()
+
         
     }
 
@@ -90,7 +91,7 @@ class Buttons{
     }
   
 
-    set_excludeTrialsButton(){
+    set_excludeTrialButton(){
 
         this.excludeTrialButton.addEventListener('click', () => {
             const trialButtonId = `trialButton-${this.page.group}-${this.page.trial}`;
@@ -144,53 +145,7 @@ class Buttons{
     }
 
     set_ANOVA(){
-
-        document.querySelectorAll('.ANOVAbutton').forEach(button => {
-
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.ANOVAbutton').forEach(button => {
-                    button.classList.toggle('active');
-                })
-
-                this.page.ANOVA = !this.page.ANOVA; 
-                
-                if (this.page.ANOVA) {
-
-                    this.pValDiv.style.display = 'inline-block'
-                    this.trialScroll.style.display = 'none'
-                    this.channelScroll.style.display = 'none'
-                    this.ANOVAscroll.style.display = 'none'
-
-                    this.excludedContainers.forEach(container => container.style.display = 'flex');
-    
-                } else {
-    
-                    this.pValDiv.style.display = 'none'
-                    this.channelScroll.style.display = 'none'
-                    this.ANOVAscroll.style.display = 'none'
-                    this.trialScroll.style.display = 'inline'
-
-                       
-                    this.excludedContainers.forEach(container => container.style.display = 'none');
-                    this.excludedTrialsContainer[this.page.group].style.display= 'flex'  
-                }
-    
-                // disables and greys out trial groups buttons when ANOVA button pressed 
-                document.querySelectorAll('.groupButton').forEach(button => {
-
-                    if (button.textContent !== this.page.group) {
-                        button.classList.toggle('active');
-                    }
-
-                    button.disabled = !button.disabled;
-
-                });
-    
-                this.page.trial = 0;
-                this.page.getData();
-
-            });
-        });
+        document.getElementById('ANOVAbutton')
     }
 
 }

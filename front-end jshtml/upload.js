@@ -10,9 +10,9 @@ class Upload{
 
     get_heatmap(){
         const ids = [
-            'trialSlider', 'channelDisplay', 'excludeTrialButton', 'loadingText',
-            'nextChan', 'trialNumber', 'trialScroll', 'prevChan', 'groupButtonContainer', 'channelScroll', 'channelNumber', 'channelButtonContainer',
-            'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
+            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll', 
+            'channelDisplay', 'channelScroll', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
+            'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile','dataForm'
         ];
 
         fetch('heatmap.html')
@@ -31,7 +31,7 @@ class Upload{
     }
 
     initialize(){
-        this.dataForm()
+        this.set_dataForm()
         this.set_uploadLFP()
         this.set_uploadWavelet()
     }
@@ -48,7 +48,7 @@ class Upload{
         return allFilled;    
 }
 
-    dataForm() {
+    set_dataForm() {
             const inputs = document.querySelectorAll('.inputValues');
 
             const timeInputs = document.querySelectorAll('.timeInput');
@@ -119,9 +119,10 @@ class Upload{
         this.trialSlider.disabled = false;
                     
         this.data.set_Wavelet()
-        this.groupButtonContainer.style.display = 'none'
         this.channelButtonContainer.style.display = 'none'
+
         this.loadingText.style.display = "none"; 
+        this.dataForm.style.display = 'none'
 
         this.heatmapView.style.display = 'block';
 
@@ -152,19 +153,18 @@ class Upload{
             })
 
             .then(response => response.json())
-            .then(data => {this.responseData = data.trialsLFP;
-
-            })
+            .then(data => {
+                this.responseData = data.trialsLFP})
             
             .catch(error => {
                 console.error('Error:', error);
             });
+
             this.data.allLFPTrials = this.responseData
 
             this.trialSlider.max = Object.keys(this.data.allLFPTrials).length-1;
             this.data.singleTrialWavelet = this.data.allLFPTrials[this.data.trial];
             
-            this.groupButtonContainer.style.display = 'none'
             this.channelButtonContainer.style.display = 'none'
 
             this.data.set_LFP()

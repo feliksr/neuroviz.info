@@ -1,6 +1,54 @@
 // anova.js
 
+set_ANOVA(){
 
+    document.querySelectorAll('.ANOVAbutton').forEach(button => {
+
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.ANOVAbutton').forEach(button => {
+                button.classList.toggle('active');
+            })
+
+            this.page.ANOVA = !this.page.ANOVA; 
+            
+            if (this.page.ANOVA) {
+
+                this.pValDiv.style.display = 'inline-block'
+                this.trialScroll.style.display = 'none'
+                this.channelScroll.style.display = 'none'
+                this.ANOVAscroll.style.display = 'none'
+
+                this.excludedContainers.forEach(container => container.style.display = 'flex');
+
+            } else {
+
+                this.pValDiv.style.display = 'none'
+                this.channelScroll.style.display = 'none'
+                this.ANOVAscroll.style.display = 'none'
+                this.trialScroll.style.display = 'inline'
+
+                   
+                this.excludedContainers.forEach(container => container.style.display = 'none');
+                this.excludedTrialsContainer[this.page.group].style.display= 'flex'  
+            }
+
+            // disables and greys out trial groups buttons when ANOVA button pressed 
+            document.querySelectorAll('.groupButton').forEach(button => {
+
+                if (button.textContent !== this.page.group) {
+                    button.classList.toggle('active');
+                }
+
+                button.disabled = !button.disabled;
+
+            });
+
+            this.page.trial = 0;
+            this.page.getData();
+
+        });
+    });
+}
     set_channelButtons(){
 
         this.prevChan.addEventListener('click', () => {
@@ -22,28 +70,7 @@
         })
     }
     
-    set_homeButton(){
 
-        document.getElementById('homeButton').addEventListener('click', () => {
-            
-            document.querySelectorAll('.groupButton').forEach(button => {
-               
-                    button.classList.remove('active');
-                    button.disabled = false;
-            });
-    
-            document.querySelectorAll('.uploadButton').forEach(button => {
-
-               button.disabled = false;
-
-            });
-
-            delete this.page.allWaveletTrials
-            delete this.page.allLFPTrials
-            console.log(this.page.allWaveletTrials)
-
-        })
-    }
     set_allANOVA(){
 
         this.allANOVA.addEventListener('click', async () =>{

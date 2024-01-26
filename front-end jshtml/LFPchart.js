@@ -64,7 +64,7 @@ class LFPchart {
             .attr("class", "x-axis")
             .call(d3.axisBottom(xScale).ticks(5))
             .append("text")
-            .attr("class", "x-axis-label")
+            .attr("id", "xAxisLabel")
             .attr("x", this.width / 2)  
             .attr("y", this.margin.bottom / 1.25)
             .text("Time from button-press response (sec)")

@@ -84,18 +84,23 @@ class Heatmap {
                 .call(d3.axisLeft(this.yScale)
                 .tickFormat(d => {return parseFloat(d.toPrecision(2))}))
             
-            heatMap.append("g")
+            let xAxis = heatMap.append("g")
                 .attr("class", "x-axis")
                 .call(d3.axisBottom(this.xScale)
                     .ticks(5)
                     .tickFormat(''))  
                 .attr("transform", `translate(0, ${this.heightSVG})`)
-                .append("text")
+                
+            xAxis.append("text")
                 .attr("class", "dragColorbarLabel")
                 .attr("x", this.width - 10)  
                 .attr("y", this.margin.bottom / 1.25)
-                .text("*Drag colorbar for scaling")
-                
+                .text('')
+            
+            if (this.container == '#container3'){
+                xAxis.select('.dragColorbarLabel')
+                    .text('*Drag colorbar for scaling')
+            }    
             
             heatMap.selectAll()
                 .data(initFreqFiltWavelet)

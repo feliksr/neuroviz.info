@@ -5,7 +5,6 @@ class Upload{
     constructor(){
 
         this.data = new Data
-        this.get_heatmap()    
     }
 
     get_heatmap(){
@@ -187,6 +186,4 @@ class Upload{
 
 
 const dataUpload = new Upload();
-
-
-
+dataUpload.get_heatmap()

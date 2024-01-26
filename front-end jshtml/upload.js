@@ -4,15 +4,15 @@ class Upload{
 
     constructor(){
 
-        this.data = new Data    
-
+        this.data = new Data
+        this.get_heatmap()    
     }
 
     get_heatmap(){
         const ids = [
             'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll', 
             'channelDisplay', 'channelScroll', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
-            'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile','dataForm'
+            'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
         ];
 
         fetch('heatmap.html')
@@ -22,7 +22,6 @@ class Upload{
 
             ids.forEach(id => {
                 this[id] = document.getElementById(id);
-                console.log(this[id])
             });
 
             this.initialize()
@@ -32,8 +31,8 @@ class Upload{
 
     initialize(){
         this.set_dataForm()
-        this.set_uploadLFP()
         this.set_uploadWavelet()
+        this.set_uploadLFP()
     }
 
     update_inputValues(inputs) {
@@ -81,7 +80,6 @@ class Upload{
     }
 
 
-
     set_uploadWavelet(){
 
         this.uploadWaveletButton.addEventListener('click', () => {
@@ -89,18 +87,19 @@ class Upload{
         });
     
         this.waveletFile.addEventListener('change', async (event) => {
-        this.loadingText.style.display = "block";  
-        let file = event.target.files[0];
-        console.log("File selected:", file.name);
-        let formData = new FormData();
-        formData.append('file', file);
-        console.log(this.timeStart)
-        formData.append('json_data', JSON.stringify({
-            timeStart: this.timeStart,
-            timeStop: this.timeStop,
-            freqLow: this.freqLow,
-            freqHigh: this.freqHigh
-        }));
+            this.loadingText.style.display = "block";  
+            
+            let file = event.target.files[0];
+            let formData = new FormData();
+            formData.append('file', file);
+            
+            formData.append('json_data', JSON.stringify({
+                timeStart: this.timeStart,
+                timeStop: this.timeStop,
+                freqLow: this.freqLow,
+                freqHigh: this.freqHigh
+            })
+        );
 
         await fetch(this.data.url + 'uploadWavelet', {
             method: 'POST',
@@ -108,26 +107,40 @@ class Upload{
         })
 
         .then(response => response.json())
-        .then(data => {this.responseData = data.trialsWavelet})
+        .then(data => {
+            return data.trialsWavelet})
+        .then(waveletTrials => {
+            this.trialSlider.max = Object.keys(waveletTrials).length-1;
+            this.data.set_Wavelet(waveletTrials)
+        })
         
         .catch(error => {console.error('Error:', error)});
 
-        this.data.allWaveletTrials = this.responseData
-        this.data.singleTrialWavelet = this.data.allWaveletTrials[this.data.trial];
+        
+        // const groupButton = document.createElement('button');
+        // groupButton.textContent = 'Group ';
+        // groupButton.className = 'groupButton';
+        // groupButton.wavelets = this.waveletTrials;
+        // this.groupButtonContainer.appendChild(groupButton)
+        // groupButton.addEventListener('click', () => { 
+        //     this.data.allWaveletTrials = groupButton.data
 
-        this.trialSlider.max = Object.keys(this.data.allWaveletTrials).length-1;
-        this.trialSlider.disabled = false;
-                    
-        this.data.set_Wavelet()
+        // });
+
+        // const nextGroupButton = document.createElement('button');
+        // groupButton.textContent = 'New Group';
+
+
+        // const initWavelet = waveletTrials[0];
+
         this.channelButtonContainer.style.display = 'none'
 
         this.loadingText.style.display = "none"; 
-        this.dataForm.style.display = 'none'
-
         this.heatmapView.style.display = 'block';
 
     });
 }
+
 
     set_uploadLFP(){
         
@@ -154,31 +167,26 @@ class Upload{
 
             .then(response => response.json())
             .then(data => {
-                this.responseData = data.trialsLFP})
-            
+                return data.trialsLFP})
+            .then(LFPtrials => {
+                this.trialSlider.max = Object.keys(LFPtrials).length-1;
+                this.data.set_LFP(LFPtrials)
+            })
             .catch(error => {
                 console.error('Error:', error);
             });
-
-            this.data.allLFPTrials = this.responseData
-
-            this.trialSlider.max = Object.keys(this.data.allLFPTrials).length-1;
-            this.data.singleTrialWavelet = this.data.allLFPTrials[this.data.trial];
             
             this.channelButtonContainer.style.display = 'none'
 
-            this.data.set_LFP()
             this.loadingText.style.display = "none"; 
-
-
             this.heatmapView.style.display = 'block';
     
         });
     }
 }
 
+
 const dataUpload = new Upload();
-dataUpload.get_heatmap();
 
 
 

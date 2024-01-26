@@ -1,7 +1,7 @@
 // LFPchart.js
 class LFPchart {
-    constructor(page) {
-        this.page = page
+    constructor(LFPtrials) {
+        this.LFPtrials = LFPtrials
         this.container = '#container4'
         this.width = 1000;
         this.height = 200;
@@ -17,16 +17,19 @@ class LFPchart {
         
         trialSlider.addEventListener('input', (event) => {
 
-            this.page.trial = event.target.value;
-            trialSlider.value = this.page.trial
-            trialNumber.textContent = this.page.trial
+            const trial = event.target.value;
+            trialSlider.value = trial
+            trialNumber.textContent = trial
+
+            const singleLFP = this.LFPtrials[trial]
             
-            this.initialize()
+            this.initialize(singleLFP)
+
         })
     }
     
-    initialize(){
-        let data = this.page.allLFPTrials[this.page.trial]
+    initialize(singleLFP){
+        const data = singleLFP
 
         d3.select(this.container)
                 .select("svg")

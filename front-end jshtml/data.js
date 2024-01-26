@@ -63,7 +63,6 @@ class Data{
                     throw new Error(`HTTP error: ${response.status}`);
                 }
             } catch (error) {
-                // Handle network errors
                 console.error(`Fetch error on attempt ${i + 1}:`, error);
             }
     
@@ -160,68 +159,30 @@ class Data{
 
         }            
            
-        this.set_Wavelet()
-        this.set_LFP()
+        this.set_Wavelet(this.allWaveletTrials)
+        this.set_LFP(this.allLFPTrials)
 
         loadingText.style.display = "none"; 
 
     }
 
 
-    set_Wavelet() {
+    set_Wavelet(waveletTrials) {
 
-        if (this.allWaveletTrials){
-            this.containers.forEach((container,index) => {
-                const freqBin = this.frequencyBins[index];
-                const heatmap = new window.Heatmap(this,container,freqBin);
-                heatmap.initialize();
-                const colorbar = new window.Colorbar(heatmap);
-                colorbar.initColorbar();
-            })
-        }
+        this.containers.forEach((container,index) => {
+            const freqBin = this.frequencyBins[index];
+            const heatmap = new Heatmap(waveletTrials,container,freqBin);
+            heatmap.initialize();
+            const colorbar = new Colorbar(heatmap);
+            colorbar.initColorbar();
+        })
     }
     
 
-    set_LFP(){
+    set_LFP(LFPtrials){
 
-        this.LFPplot = new window.LFPchart(this)
-        this.LFPplot.initialize()
-    }
-    
-
-    getPowerValues(freqBin) {
-        let powerValues = [];
-
-        Object.entries(this.allWaveletTrials).forEach(([trialNum, array]) => {
-            const trialButtonId = `trialButton-${this.group}-${trialNum}`;
-            const isExcluded = document.getElementById(trialButtonId) !== null;
-    
-            if (!isExcluded) {
-                array.forEach(d => {
-                    if (d.frequency >= freqBin.min && d.frequency <= freqBin.max) {
-                        powerValues.push(d.power);
-                    };
-                });
-            }
-        });
-        return powerValues;
-    }
-
-    setColorScale(heatmap){
-       const freqBin = heatmap.freqBin
-
-       if (this.ANOVA ){
-            heatmap.ANOVA = true
-            heatmap.maxPower = this.allButtons.pVal.value
-            heatmap.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([heatmap.maxPower,0])
-            document.getElementById('colorbarLabel').textContent = 'p-Value'
-        }
-        else {
-            heatmap.ANOVA = false
-            heatmap.maxPower = 3 * d3.deviation(this.getPowerValues(freqBin))
-            heatmap.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, heatmap.maxPower])
-            document.getElementById('colorbarLabel').innerHTML = 'Power  (uV / Hz<sup>2</sup>)'
-        }
+        const LFPplot = new LFPchart(LFPtrials)
+        LFPplot.initialize(LFPtrials[0])
     }
 } 
 

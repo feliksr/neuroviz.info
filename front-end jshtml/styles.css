@@ -82,7 +82,7 @@ svg .LFP-label {
     border-radius: 5px;
 }
 
-#meanTrialsButton, #meanChannelsButton, .ANOVAbutton, #excludeTrialButton, #excludeChannelButton, #allANOVA{
+#meanTrialsButton, #meanChannelsButton, #ANOVAbutton, #excludeTrialButton, #excludeChannelButton, #allANOVA{
     padding: 5px 10px;
     font-size: 1.1em;
     border-radius: 5px; 
@@ -95,7 +95,7 @@ svg .LFP-label {
     gap: 40px;
 }
 
-.groupButton.active, .ANOVAbutton.active, #meanTrialsButton.active, #excludeTrialButton.active, #allANOVA.active {
+.groupButton.active, #ANOVAbutton.active, #meanTrialsButton.active, #excludeTrialButton.active, #allANOVA.active {
     background-color: #555;
     color: white;
 }

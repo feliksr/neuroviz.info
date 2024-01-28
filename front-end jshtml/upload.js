@@ -5,11 +5,12 @@ class Upload{
     constructor(){
 
         this.data = new Data
+        this.groupNumber = 0
     }
 
     get_heatmap(){
         const ids = [
-            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll', 
+            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll',
             'channelDisplay', 'channelScroll', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
             'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
         ];
@@ -28,7 +29,17 @@ class Upload{
         .catch(error => console.error('Error:', error));
     }
 
+    nextButtonClick = () => {
+        this.groupNumber = 0;
+        
+        const buttons = document.querySelectorAll('.groupButton');
+        buttons.forEach(btn => btn.classList.remove('active'));                
+        this.groupButtonContainer.lastElementChild.classList.add('active');
+    }
+
     initialize(){
+        
+        this.init_nextButton()
         this.set_dataForm()
         this.set_WaveletButton()
         this.set_LFPbutton()
@@ -79,30 +90,70 @@ class Upload{
     }
 
     init_GroupButton(){
-        const groupButton = document.createElement('button');
-        groupButton.className = 'groupButton';
-        groupButton.textContent = 'New Group';
+        const container = this.groupButtonContainer
+        const containerLength = container.children.length
 
+        const button = document.createElement('button');
+        button.className = 'groupButton';
+        button.groupNumber = container.children.length
+        this.groupNumber = button.groupNumber
+        button.textContent = 'Group ' + button.groupNumber
+
+        const buttons = document.querySelectorAll('.groupButton');
+        buttons.forEach(btn => btn.classList.remove('active'));  
+
+        button.classList.add('active')
+        
+        button.addEventListener('click', (event) => { 
+            this.groupNumber = event.target.groupNumber
+
+            const buttons = document.querySelectorAll('.groupButton');
+            buttons.forEach(btn => btn.classList.remove('active'));   
+
+            button.classList.add('active')
+
+            if (button.waveletTrials){
+                this.data.set_Wavelet(button.waveletTrials)
+            }
+
+            if (button.LFPtrials){
+                this.data.set_LFP(button.LFPtrials)
+            }
+        });
+
+        container.insertBefore(button,container.children[containerLength-1])
+
+        return button
+    }
+    
+    init_nextButton(){
+        const nextButton = document.createElement('button');
+        nextButton.className = 'groupButton';
+        nextButton.textContent = 'New Group';
+        nextButton.addEventListener('click', this.nextButtonClick);
+ 
+        this.groupButtonContainer.appendChild(nextButton)
     }
 
     set_GroupButton(waveletTrials,LFPtrials){
         
+        let button
+        console.log(this.groupNumber)
 
-        function setGroupButton(groupButton){
-            groupButton.addEventListener('click', () => { 
-                if (groupButton.waveletTrials){
-                    this.data.set_WaveletTrials(groupButton.waveletTrials)
-                }
-                if (groupButton.LFPtrials){
-                    this.data.set_LFPtrials(groupButton.LFPtrials)
-                }
-            });
+        if (this.groupNumber == 0){
+            button = this.init_GroupButton()
+        
+        }else{
+            button = this.groupButtonContainer.children[this.groupNumber]
         }
 
-        groupButton.waveletTrials = waveletTrials;
-        groupButton.LFPtrials = LFPtrials;
-        setGroupButton(groupButton)
-     
+        if (waveletTrials){
+            button.waveletTrials = waveletTrials;
+        }
+
+        if (LFPtrials){
+            button.LFPtrials = LFPtrials;
+        }
     }
 
     set_WaveletButton(){
@@ -132,13 +183,15 @@ class Upload{
         })
 
         .then(response => response.json())
+        
         .then(data => {
             return data.trialsWavelet})
+        
         .then(waveletTrials => {
             this.trialSlider.max = Object.keys(waveletTrials).length-1;
             this.data.set_Wavelet(waveletTrials)
+            this.set_GroupButton(waveletTrials,undefined)
         })
-        .then()
         
         .catch(error => {console.error('Error:', error)});
 
@@ -147,6 +200,10 @@ class Upload{
 
         this.loadingText.style.display = "none"; 
         this.heatmapView.style.display = 'block';
+
+        // reveal yAxisLabel if previously hidden by set_LFPbutton()
+        document.getElementById('yAxisLabel').style.display = 'block'
+        event.target.value = ''
 
     });
 }
@@ -176,12 +233,16 @@ class Upload{
             })
 
             .then(response => response.json())
+
             .then(data => {
                 return data.trialsLFP})
+            
             .then(LFPtrials => {
                 this.trialSlider.max = Object.keys(LFPtrials).length-1;
                 this.data.set_LFP(LFPtrials)
+                this.set_GroupButton(undefined,LFPtrials)
             })
+
             .catch(error => {
                 console.error('Error:', error);
             });
@@ -190,7 +251,9 @@ class Upload{
 
             this.loadingText.style.display = "none"; 
             this.heatmapView.style.display = 'block';
-            document.getElementsById('xAxisLabel').style.display = 'none'
+            document.getElementById('xAxisLabel').style.display = 'none'
+            document.getElementById('yAxisLabel').style.display = 'none'
+            event.target.value = ''
 
         });
     }

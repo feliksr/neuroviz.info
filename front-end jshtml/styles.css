@@ -80,6 +80,7 @@ svg .LFP-label {
     padding: 10px 20px;
     font-size: 1.2em;
     border-radius: 5px;
+
 }
 
 #meanTrialsButton, #meanChannelsButton, #ANOVAbutton, #excludeTrialButton, #excludeChannelButton, #allANOVA{
@@ -133,7 +134,7 @@ svg .LFP-label {
     gap: 10px;
 }
 
-.uploadButtons {
+.uploadButtons, .groupButton {
     position:relative;
     padding: 10px;
     font-size: 1.2em;

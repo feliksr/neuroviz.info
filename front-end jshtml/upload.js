@@ -6,6 +6,7 @@ class Upload{
 
         this.data = new Data
         this.groupNumber = 0
+        
     }
 
     get_heatmap(){
@@ -31,6 +32,9 @@ class Upload{
 
     nextButtonClick = () => {
         this.groupNumber = 0;
+
+        document.getElementById('heatmapWrapper').style.display = 'none'
+        document.getElementById('container4').style.display = 'none'
         
         const buttons = document.querySelectorAll('.groupButton');
         buttons.forEach(btn => btn.classList.remove('active'));                
@@ -103,22 +107,32 @@ class Upload{
         buttons.forEach(btn => btn.classList.remove('active'));  
 
         button.classList.add('active')
-        
+
         button.addEventListener('click', (event) => { 
             this.groupNumber = event.target.groupNumber
 
             const buttons = document.querySelectorAll('.groupButton');
             buttons.forEach(btn => btn.classList.remove('active'));   
 
-            button.classList.add('active')
+            button.classList.add('active');
 
+            const wavelet = document.getElementById('heatmapWrapper')
+            wavelet.style.display = 'none'
+            const LFP = document.getElementById('container4')
+            LFP.style.display = 'none'
+    
             if (button.waveletTrials){
+                wavelet.style.display = 'block'
+                console.log('wavelet displayed')
                 this.data.set_Wavelet(button.waveletTrials)
             }
 
             if (button.LFPtrials){
+                LFP.style.display = 'flex'
+                console.log('LFP displayed')
                 this.data.set_LFP(button.LFPtrials)
             }
+
         });
 
         container.insertBefore(button,container.children[containerLength-1])
@@ -128,15 +142,20 @@ class Upload{
     
     init_nextButton(){
         const nextButton = document.createElement('button');
+    
         nextButton.className = 'groupButton';
         nextButton.textContent = 'New Group';
         nextButton.addEventListener('click', this.nextButtonClick);
  
         this.groupButtonContainer.appendChild(nextButton)
+        this.groupButtonContainer.style.display = 'none'
+        
+
     }
 
     set_GroupButton(waveletTrials,LFPtrials){
-        
+
+        this.groupButtonContainer.style.display = 'flex'
         let button
         console.log(this.groupNumber)
 
@@ -144,16 +163,26 @@ class Upload{
             button = this.init_GroupButton()
         
         }else{
-            button = this.groupButtonContainer.children[this.groupNumber]
+            console.log(this.groupNumber)
+            button = this.groupButtonContainer.children[this.groupNumber-1]
+            console.log(this.groupButtonContainer)
+            console.log()
         }
 
         if (waveletTrials){
+            console.log('added wavelet')
             button.waveletTrials = waveletTrials;
+            document.getElementById('heatmapWrapper').style.display = 'block'
         }
 
         if (LFPtrials){
+            console.log('added LFP')
             button.LFPtrials = LFPtrials;
+            document.getElementById('container4').style.display = 'flex'
         }
+
+        console.log(button.LFPtrials)
+        console.log(button.waveletTrials)  
     }
 
     set_WaveletButton(){

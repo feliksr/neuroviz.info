@@ -11,7 +11,7 @@ class Upload{
 
     get_heatmap(){
         const ids = [
-            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll',
+            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll', 'xAxisLabel',
             'channelDisplay', 'channelScroll', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
             'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
         ];
@@ -49,7 +49,9 @@ class Upload{
                 
         // not used currently
         this.channelButtonContainer.style.display = 'none'
-        
+        this.xAxisLabel.style.display = 'none'
+       
+        // initially hidden
         document.getElementById('heatmapWrapper').style.display = 'none'
         document.getElementById('container4').style.display = 'none'
 
@@ -60,12 +62,12 @@ class Upload{
     }
 
     set_Text (button){
+
         if (button.LFPtrials){
             this.data.set_LFP(button.LFPtrials)
-            
+
             document.getElementById('container4').style.display = 'flex'
             console.log('LFP displayed')
-
         }
 
         if (button.waveletTrials){
@@ -81,6 +83,7 @@ class Upload{
             document.getElementById('yAxisLabel').style.display = 'none'
             document.getElementById('colorbarLabel').style.display = 'none'
         }
+
     }
 
     update_inputValues(inputs) {
@@ -178,6 +181,7 @@ class Upload{
     }
 
     set_GroupButton(waveletTrials,LFPtrials){
+
 
         this.heatmapView.style.display = 'block';
 
@@ -278,25 +282,22 @@ class Upload{
             .then(response => response.json())
 
             .then(data => {
-                return data.trialsLFP})
+                return data.trialsLFP
+
+            })
             
             .then(LFPtrials => {
                 this.trialSlider.max = Object.keys(LFPtrials).length-1;
-                // this.data.set_LFP(LFPtrials)
+                
                 this.set_GroupButton(undefined,LFPtrials)
             })
 
             .catch(error => {
                 console.error('Error:', error);
             });
-            
-        const xLabel = document.getElementById('.xAxisLabel')
-        
-        if (xLabel) {
-            xLabel.style.display = 'none'
-        }
 
-        event.target.value = ''
+            
+            event.target.value = ''
 
         });
     }

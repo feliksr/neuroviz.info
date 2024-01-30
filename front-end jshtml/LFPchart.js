@@ -8,7 +8,7 @@ class LFPchart {
         this.margin = {
             top: 0,
             right: 100,
-            bottom: 80,
+            bottom: 40,
             left: 50
         };
         
@@ -63,11 +63,11 @@ class LFPchart {
             .attr("transform", `translate(${this.margin.left}, ${this.height})`)    
             .attr("class", "x-axis")
             .call(d3.axisBottom(xScale).ticks(5))
-            .append("text")
-            .attr("id", "xAxisLabel")
-            .attr("x", this.width / 2)  
-            .attr("y", this.margin.bottom / 1.25)
-            .text("Time from button-press response (sec)")
+            // .append("text")
+            // .attr("id", "xAxisLabel")
+            // .attr("x", this.width / 2)  
+            // .attr("y", this.margin.bottom / 1.25)
+            // .text("Time from button-press response (sec)")
 
         svg.append("rect")
             .attr("x", this.margin.left)

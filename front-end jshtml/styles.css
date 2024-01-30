@@ -49,10 +49,10 @@ input[type=range] {
     font-size: 18px;
 }
 
-svg .x-axis-label { 
+#xAxisLabel { 
     font-size: 20px;
     fill: #ffffff;
-    text-anchor: middle
+    text-align: center;
 }
 
 svg .dragColorbarLabel{

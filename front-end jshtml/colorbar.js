@@ -38,6 +38,7 @@ class Colorbar {
     }
 
     setColorbarScale(){
+
         this.colorbarScale = d3.scaleLinear()
             .domain([0, this.heatmap.maxPower])
             .range([this.heatmap.heightSVG, 0]);
@@ -60,6 +61,7 @@ class Colorbar {
 
     addDragBehavior() {
 
+      
         const dragged = () => {
             const yPosition = d3.event.y * 0.03; 
             const maxPower = this.colorbarScale.invert(yPosition);
@@ -67,7 +69,11 @@ class Colorbar {
             this.colorbarScale.domain([0, maxPower]);
             this.drawColorBar();
             this.heatmap.colorScale.domain([0, maxPower])
-            this.heatmap.drawHeatmap();
+            const trial = document.getElementById('trialSlider').value
+            const wavelet = this.heatmap.waveletTrials[trial]
+            const freqFiltWavelet = wavelet.filter(d => d.frequency >= this.heatmap.freqBin.min && d.frequency <= this.heatmap.freqBin.max);
+    
+            this.heatmap.drawHeatmap(freqFiltWavelet);            
             }
 
         const dragHandler = d3.drag()

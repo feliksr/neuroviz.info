@@ -11,7 +11,7 @@ class Upload{
 
     get_heatmap(){
         const ids = [
-            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll', 'xAxisLabel',
+            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll', 'xAxisLabel', 'meanTrialsButton', 
             'channelDisplay', 'channelScroll', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
             'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
         ];
@@ -50,6 +50,7 @@ class Upload{
         // not used currently
         this.channelButtonContainer.style.display = 'none'
         this.xAxisLabel.style.display = 'none'
+        this.meanTrialsButton.style.display = 'none'
        
         // initially hidden
         document.getElementById('heatmapWrapper').style.display = 'none'

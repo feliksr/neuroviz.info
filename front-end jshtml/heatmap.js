@@ -112,7 +112,7 @@ class Heatmap {
                 .attr("shape-rendering", "crispEdges");
 
             
-            this.set_ColorScale()           
+            this.set_ColorScale()
             this.drawHeatmap(initFreqFiltWavelet);
     }
         

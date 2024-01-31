@@ -2,7 +2,8 @@
 
 class Data{
     constructor(stimGroup,allGroups) {
-        this.url = 'https://neuroviz.info/api/'
+        // this.url = 'https://neuroviz.info/api/'
+        this.url = 'http://localhost:5000/'
 
         // Initial page parameters
         this.stimGroup = stimGroup
@@ -80,8 +81,7 @@ class Data{
         console.log(this.chanNumbers[this.channelIdx])
         document.getElementById('channelDisplay').textContent = `Channel ${this.chanNumbers[this.channelIdx]} ${this.chanLabels[this.channelIdx]}`;
 
-        const trialSlider  = document.getElementById('trialSlider')
-        trialSlider.disabled = true 
+        document.getElementById('trialSlider').disabled = true 
 
         const channelSlider = document.getElementById('channelSlider')
         channelSlider.disabled = true
@@ -116,8 +116,7 @@ class Data{
             this.allWaveletTrials = this.responseData.trialsWavelet
             this.allLFPTrials = this.responseData.trialsLFP
 
-            trialSlider.max = Object.keys(this.allWaveletTrials).length-1;
-            trialSlider.disabled = false;
+
             this.singleTrialWavelet = this.allWaveletTrials[this.trial];
             this.singleTrialLFP = this.allLFPTrials[this.trial];
                 
@@ -169,13 +168,23 @@ class Data{
 
     set_Wavelet(waveletTrials) {
 
+
         this.containers.forEach((container,index) => {
             const freqBin = this.frequencyBins[index];
+            
             const heatmap = new Heatmap(waveletTrials,container,freqBin);
             heatmap.initialize();
+
             const colorbar = new Colorbar(heatmap);
             colorbar.initColorbar();
+
         })
+            document.getElementById('trialNumber').textContent = 0
+
+            const trialSlider = document.getElementById('trialSlider')
+            trialSlider.value = 0
+            trialSlider.max = Object.keys(waveletTrials).length-1;
+            trialSlider.disabled = false;
     }
     
 

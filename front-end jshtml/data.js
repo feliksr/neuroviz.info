@@ -13,7 +13,6 @@ class Data{
         this.channelIdx = 0
         this.run = 1
 
-        this.meanTrials = false,
         this.ANOVA =  false,
 
         this.frequencyBins = [
@@ -76,6 +75,10 @@ class Data{
         throw new Error('Request failed after retries');
     }
     
+    async getANOVA() {
+        pass
+    }
+
 
     async getData() {
         console.log(this.chanNumbers[this.channelIdx])
@@ -96,7 +99,6 @@ class Data{
             allGroups: this.allGroups,
             subject: this.subject,
             excludedTrialsContainer: excludedTrialsContainer,
-            meanTrials: this.meanTrials,
             ANOVA: this.ANOVA,
             allANOVA: this.allANOVA,
             run: this.run
@@ -113,12 +115,10 @@ class Data{
                 console.error('Failed to fetch data:', error);
             }
                           
-            this.allWaveletTrials = this.responseData.trialsWavelet
-            this.allLFPTrials = this.responseData.trialsLFP
-
-
-            this.singleTrialWavelet = this.allWaveletTrials[this.trial];
-            this.singleTrialLFP = this.allLFPTrials[this.trial];
+            this.waveletTrials = this.responseData.trialsWavelet
+            this.LFPtrials = this.responseData.trialsLFP
+            this.meanWavelet = this.responseData.trialsWaveletMean
+            this.meanLFP = this.responseData.trialsLFPMean
                 
         } else {
         
@@ -158,10 +158,12 @@ class Data{
 
         }            
            
-        this.set_Wavelet(this.allWaveletTrials)
-        this.set_LFP(this.allLFPTrials)
+        this.set_Wavelet(this.waveletTrials)
+        this.set_LFP(this.LFPtrials)
 
         loadingText.style.display = "none"; 
+
+        return [this.waveletTrials,this.LFPtrials,this.meanWavelet, this.meanLFP]
 
     }
 
@@ -194,5 +196,3 @@ class Data{
         LFPplot.initialize(LFPtrials[0])
     }
 } 
-
-window.data = Data;

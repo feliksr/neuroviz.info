@@ -157,4 +157,4 @@ class Heatmap {
 
 
 
-window.Heatmap = Heatmap;
+// window.Heatmap = Heatmap;

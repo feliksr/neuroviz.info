@@ -3,22 +3,25 @@ from flask_cors import CORS
 import numpy as np
 import scipy.stats as stats
 import mysql.connector
-from config import DB_CONFIG
 import json
 import io
+import os
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 limiter = Limiter(
-    app=app,
+    app=application,
     key_func=get_remote_address, 
     default_limits=["1000 per day", "10 per minute"] 
 )
 
-CORS(app)
+CORS(application)
+
+DB_CONFIG_JSON = os.environ.get('DB_CONFIG')
+DB_CONFIG = json.loads(DB_CONFIG_JSON)
 
 class JsonifyWavelet:
     def __init__(self, data,timeStart,timeStop,freqScale):
@@ -141,7 +144,7 @@ class Database:
         freqScale_array = np.array(freqScale_list)
         return channelArrays, timeStart, timeStop, freqScale_array, xBinsWavelet, yBinsWavelet
      
-@app.route('/chans', methods=['POST'])
+@application.route('/api/chans', methods=['POST'])
     
 def get_chans():
     args = request.json
@@ -159,7 +162,7 @@ def get_chans():
         "chanLabels": chanLabels
     })
 
-@app.route('/anova', methods=['POST'])
+@application.route('/api/anova', methods=['POST'])
     
 def run_ANOVA():    
     args = request.json
@@ -211,7 +214,7 @@ def run_ANOVA():
         "channelsLFP": channelsLFP
     })
 
-@app.route('/', methods=['POST'])
+@application.route('/api/', methods=['POST'])
 
 def serve_data():
     args = request.json
@@ -219,7 +222,6 @@ def serve_data():
     category = args.get('group')
     stimGroup=args.get('stimGroup')
     currentChannel = args.get('currentChannel')
-    meanTrials = args.get('meanTrials')
     excludedTrials = args.get('excludedTrialsContainer')
     run = args.get('run')
     
@@ -238,28 +240,32 @@ def serve_data():
     # LFPfile = 'LFParray'
     # np.save(LFPfile, LFPdata)
 
-    if meanTrials == True: 
-        meanWavelet = np.mean(waveletData,axis=-1)
-        meanWavelet = np.expand_dims(meanWavelet,axis=-1)
-        converterWavelet = JsonifyWavelet(meanWavelet,timeStart,timeStop,freqScale)
+    meanWavelet = np.mean(waveletData,axis=-1)
+    meanWavelet = np.expand_dims(meanWavelet,axis=-1)
 
-        meanLFP = np.mean(LFPdata,axis=-1)
-        meanLFP = np.expand_dims(meanLFP,axis=-1)
-        converterLFP = JsonifyLFP(meanLFP,timeStart,timeStop)
-        
-    else: 
-        converterWavelet = JsonifyWavelet(waveletData,timeStart,timeStop,freqScale)
-        converterLFP = JsonifyLFP(LFPdata,timeStart,timeStop)
+    converterWaveletMean = JsonifyWavelet(meanWavelet,timeStart,timeStop,freqScale)
+    trialsWaveletMean = converterWaveletMean.slice_trials()
+
+    meanLFP = np.mean(LFPdata,axis=-1)
+    meanLFP = np.expand_dims(meanLFP,axis=-1)
+
+    converterLFPMean = JsonifyLFP(meanLFP,timeStart,timeStop)
+    trialsLFPMean = converterLFPMean.slice_trials()
     
+    converterWavelet = JsonifyWavelet(waveletData,timeStart,timeStop,freqScale)
+    converterLFP = JsonifyLFP(LFPdata,timeStart,timeStop)
+
     trialsWavelet = converterWavelet.slice_trials()
     trialsLFP = converterLFP.slice_trials()
 
     return jsonify({
         "trialsWavelet": trialsWavelet,
-        "trialsLFP": trialsLFP
+        "trialsLFP": trialsLFP,
+        "trialsLFPMean" : trialsLFPMean,
+        "trialsWaveletMean" : trialsWaveletMean
     })
 
-@app.route('/uploadWavelet', methods=['POST'])
+@application.route('/api/uploadWavelet', methods=['POST'])
 
 def upload_Wavelet():
     json_data = json.loads(request.form['json_data'])
@@ -279,7 +285,7 @@ def upload_Wavelet():
         "trialsWavelet": trialsWavelet
     })
 
-@app.route('/uploadLFP', methods=['POST'])
+@application.route('/api/uploadLFP', methods=['POST'])
 def upload_LFP():
     json_data = json.loads(request.form['json_data'])
     timeStart = json_data['timeStart']

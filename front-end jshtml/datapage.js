@@ -38,21 +38,26 @@ class Buttons{
     initialize() {
         this.init_groupButtons()
         this.set_channelButtons()
-        this.set_meanTrialsButton()
         // this.set_ANOVA()
         // this.set_excludeTrialButton()
-
-        
     }
 
-    set_meanTrialsButton(){
+    set_meanButton(wavelet,LFP, meanWavelet, meanLFP){
+                
         this.meanTrialsButton.addEventListener('click', () => {
-            this.data.meanTrials = !this.data.meanTrials
-            this.meanTrialsButton.classList.toggle('active', this.data.meanTrials);
-            this.data.trial = 0         
-            this.trialSlider.value = this.data.trial
-            this.trialNumber.textContent = this.data.trial
-            this.data.getData();
+            this.meanTrialsButton.classList.toggle('active');
+            
+            if (this.meanTrialsButton.classList.contains('active')) {
+                this.data.set_Wavelet(meanWavelet)
+                this.data.set_LFP(meanLFP)
+            } else {
+                this.data.set_Wavelet(wavelet)
+                this.data.set_LFP(LFP)
+            }
+            
+                      
+            this.trialSlider.value = 0
+            this.trialNumber.textContent = 0
         });
     }
 
@@ -66,7 +71,8 @@ class Buttons{
                 // this.excludedContainers.forEach(container => container.style.display = 'none');
                 // this.excludedTrialsContainer[this.page.group].style.display = 'block'
                 
-                await this.data.getData();
+                let [wavelet, LFP, meanWavelet, meanLFP] = await this.data.getData();
+                this.set_meanButton(wavelet,LFP, meanWavelet, meanLFP)
                 this.heatmapView.style.display = 'block'
         })
     }

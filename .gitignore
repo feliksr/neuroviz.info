@@ -1,8 +1,8 @@
 back-end python/__pycache__/*
 venv/*
-MATLAB/convertToPython.m
 *.asv
 *.npy
 *.zip
 import mysql.py
 config.py
+convertToPython.m

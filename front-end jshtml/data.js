@@ -3,7 +3,7 @@
 class Data{
     constructor(stimGroup,allGroups) {
         // this.url = 'https://neuroviz.info/api/'
-        this.url = 'http://localhost:5000/'
+        this.url = 'http://localhost:5000/api/'
 
         // Initial page parameters
         this.stimGroup = stimGroup

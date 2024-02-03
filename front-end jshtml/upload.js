@@ -65,14 +65,14 @@ class Upload{
     set_Text (button){
 
         if (button.LFPtrials){
-            this.data.set_LFP(button.LFPtrials)
+            this.data.init_LFP(button.LFPtrials)
 
             document.getElementById('container4').style.display = 'flex'
             console.log('LFP displayed')
         }
 
         if (button.waveletTrials){
-            this.data.set_Wavelet(button.waveletTrials)
+            this.data.init_Wavelet(button.waveletTrials)
 
             document.getElementById('yAxisLabel').style.display = 'block'
             document.getElementById('colorbarLabel').style.display = 'block'
@@ -245,7 +245,6 @@ class Upload{
         
         .then(waveletTrials => {
             this.trialSlider.max = Object.keys(waveletTrials).length-1;
-            // this.data.set_Wavelet(waveletTrials)
             this.set_GroupButton(waveletTrials,undefined)
         })
         
@@ -289,7 +288,6 @@ class Upload{
             
             .then(LFPtrials => {
                 this.trialSlider.max = Object.keys(LFPtrials).length-1;
-                
                 this.set_GroupButton(undefined,LFPtrials)
             })
 

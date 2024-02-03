@@ -1,7 +1,6 @@
 class Heatmap {
-    constructor(waveletTrials,container,freqBin) {
+    constructor(container,freqBin) {
         
-        this.waveletTrials = waveletTrials
         this.container = container
         this.freqBin = freqBin
         this.width = 1000;
@@ -14,64 +13,34 @@ class Heatmap {
             left: 50
         };
 
-        const trialNumber = document.getElementById('trialNumber')
-        const trialSlider = document.getElementById('trialSlider') 
-
-        trialSlider.addEventListener('input', (event) => {
-            const trial = event.target.value;
-            trialSlider.value = trial
-            trialNumber.textContent = trial
-            
-            const singleWavelet = this.waveletTrials[trial];
-            const freqFiltWavelet = singleWavelet.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
-            this.drawHeatmap(freqFiltWavelet); 
-
-        })
-
-        // const channelSlider = document.getElementById('channelSlider')
-        // const channelNumber = document.getElementById('channelNumber')
-
-        // channelSlider.addEventListener('input', (event) => {
-        //     this.page.channelIdx = event.target.value;
-        //     channelSlider.value = this.page.channelIdx
-        //     channelNumber.textContent = `${this.page.chanNumbers[this.page.channelIdx]} ${this.page.chanLabels[this.page.channelIdx]}`
-
-        //     this.page.LFPplot.initialize(); 
-            
-        //     this.singleChannelData = this.page.allWaveletChannels[this.page.channelIdx];
-        //     this.filteredData = this.singleChannelData.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
-        //     this.drawHeatmap(); 
-        // })            
-
+    }
+    split_Freq(wavelet){
+        console.log(wavelet)
+        const filtWavelet = wavelet.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
+        return filtWavelet
     }
 
-    initialize() {
+    initialize(waveletTrials) {
             d3.select(this.container)
                 .select("svg")
                 .remove(); 
 
-            // if (this.page.ANOVA){
-            //     this.filteredData = this.page.singleChannelWavelet.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
-
-            // }else{
-                const initWavelet = this.waveletTrials[0]
-                const initFreqFiltWavelet = initWavelet.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
-
-            // }
+            const initWavelet = waveletTrials[0];
+            const filtWavelet = this.split_Freq(initWavelet);
 
             const allFreqBins = new Set(initWavelet.map(d => d.frequency)).size
-            const numFreqBins = new Set(initFreqFiltWavelet.map(d => d.frequency)).size
-            const numTimeBins = new Set(initFreqFiltWavelet.map(d => d.time)).size
+            const numFreqBins = new Set(filtWavelet.map(d => d.frequency)).size
+            const numTimeBins = new Set(filtWavelet.map(d => d.time)).size
             
             this.heightSVG = this.height * (numFreqBins/allFreqBins)
             
             this.xScale = d3.scaleLinear()
                 .range([0, this.width])
-                .domain([d3.min(initFreqFiltWavelet, d => d.time), d3.max(initFreqFiltWavelet, d => d.time)]);
+                .domain([d3.min(filtWavelet, d => d.time), d3.max(filtWavelet, d => d.time)]);
             
             this.yScale = d3.scaleLog()
                 .range([0, this.heightSVG])
-                .domain([d3.max(initFreqFiltWavelet, d => d.frequency),d3.min(initFreqFiltWavelet, d => d.frequency)]);
+                .domain([d3.max(filtWavelet, d => d.frequency),d3.min(filtWavelet, d => d.frequency)]);
                       
             this.svg = d3.select(this.container).append("svg")
                 .attr("width", this.width + this.margin.left + this.margin.right)
@@ -103,7 +72,7 @@ class Heatmap {
             }    
             
             heatMap.selectAll()
-                .data(initFreqFiltWavelet)
+                .data(filtWavelet)
                 .enter().append("rect")
                 .attr("x", d => this.xScale(d.time))
                 .attr("y", d => this.yScale(d.frequency) -  this.heightSVG/(numFreqBins -1))
@@ -111,18 +80,17 @@ class Heatmap {
                 .attr("height", this.heightSVG / (numFreqBins - 1))
                 .attr("shape-rendering", "crispEdges");
 
-            
-            this.set_ColorScale()
-            this.drawHeatmap(initFreqFiltWavelet);
+            return filtWavelet
     }
         
-    drawHeatmap(filteredData) {
+    draw_Heatmap(filteredData) {
+        // this.set_ColorScale(filteredData)
         this.svg.selectAll("rect")
             .data(filteredData)
             .attr("fill", d => this.colorScale(d.power));
     }
 
-    set_ColorScale(){
+    set_ColorScale(filteredData){
         // if (this.ANOVA ){
         //      heatmap.ANOVA = true
         //      heatmap.maxPower = this.allButtons.pVal.value
@@ -131,30 +99,41 @@ class Heatmap {
         //  }
         //  else {
             //  heatmap.ANOVA = false
-             this.maxPower = 3 * d3.deviation(this.get_PowerValue())
+             this.maxPower = 3 * d3.deviation(this.get_PowerValue(filteredData))
              this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, this.maxPower])
              document.getElementById('colorbarLabel').innerHTML = 'Power  (uV / Hz<sup>2</sup>)'
     }
 
-    get_PowerValue() {
+    get_PowerValue(filteredData) {
         let powerValues = [];
-
-        Object.entries(this.waveletTrials).forEach(([trialNum, array]) => {
+        filteredData.forEach(array => {
             // const trialButtonId = `trialButton-${this.group}-${trialNum}`;
             // const isExcluded = document.getElementById(trialButtonId) !== null;
     
             // if (!isExcluded) {
-                array.forEach(d => {
-                    if (d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max) {
-                        powerValues.push(d.power);
-                    };
+                     powerValues.push(array.power);
+                
                 });
-            // }
-        });
+            // 
+
         return powerValues;
     }
+
+
+
+        // const channelSlider = document.getElementById('channelSlider')
+        // const channelNumber = document.getElementById('channelNumber')
+
+        // channelSlider.addEventListener('input', (event) => {
+        //     this.page.channelIdx = event.target.value;
+        //     channelSlider.value = this.page.channelIdx
+        //     channelNumber.textContent = `${this.page.chanNumbers[this.page.channelIdx]} ${this.page.chanLabels[this.page.channelIdx]}`
+
+        //     this.page.LFPplot.initialize(); 
+            
+        //     this.singleChannelData = this.page.allWaveletChannels[this.page.channelIdx];
+        //     this.filteredData = this.singleChannelData.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
+        //     this.drawHeatmap(); 
+        // })  
+    
 }
-
-
-
-// window.Heatmap = Heatmap;

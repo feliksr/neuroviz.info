@@ -11,23 +11,9 @@ class LFPchart {
             bottom: 40,
             left: 50
         };
-        
-        const trialNumber = document.getElementById('trialNumber')
-        const trialSlider = document.getElementById('trialSlider')
-        
-        trialSlider.addEventListener('input', (event) => {
-
-            const trial = event.target.value;
-            trialSlider.value = trial
-            trialNumber.textContent = trial
-
-            const singleLFP = this.LFPtrials[trial]
-            
-            this.initialize(singleLFP)
-
-        })
     }
-    
+
+
     initialize(singleLFP){
         const data = singleLFP
 
@@ -63,11 +49,7 @@ class LFPchart {
             .attr("transform", `translate(${this.margin.left}, ${this.height})`)    
             .attr("class", "x-axis")
             .call(d3.axisBottom(xScale).ticks(5))
-            // .append("text")
-            // .attr("id", "xAxisLabel")
-            // .attr("x", this.width / 2)  
-            // .attr("y", this.margin.bottom / 1.25)
-            // .text("Time from button-press response (sec)")
+
 
         svg.append("rect")
             .attr("x", this.margin.left)
@@ -90,6 +72,3 @@ class LFPchart {
             .attr("stroke-width", 2);
     }
 }            
-
-window.LFPchart = LFPchart;
-

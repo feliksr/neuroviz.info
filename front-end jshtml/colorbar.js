@@ -32,7 +32,6 @@ class Colorbar {
             .attr("shape-rendering", "crispEdges")
 
         this.setColorbarScale();
-        this.addDragBehavior();
     }
 
     setColorbarScale(){
@@ -57,9 +56,9 @@ class Colorbar {
             .attr("transform", `translate(${this.width}, 0)`); 
     }  
 
-    addDragBehavior() {
+    set_ColorbarDragging(wavelet) {
 
-      
+        const waveletTrials = wavelet
         const dragged = () => {
             const yPosition = d3.event.y * 0.03; 
             const maxPower = this.colorbarScale.invert(yPosition);
@@ -68,10 +67,10 @@ class Colorbar {
             this.drawColorBar();
             this.heatmap.colorScale.domain([0, maxPower])
             const trial = document.getElementById('trialSlider').value
-            const wavelet = this.heatmap.waveletTrials[trial]
-            const freqFiltWavelet = wavelet.filter(d => d.frequency >= this.heatmap.freqBin.min && d.frequency <= this.heatmap.freqBin.max);
-    
-            this.heatmap.drawHeatmap(freqFiltWavelet);            
+             
+            const waveletTrial = waveletTrials[trial]
+            const splitWavelet = this.heatmap.split_Freq(waveletTrial)
+            this.heatmap.draw_Heatmap(splitWavelet);            
             }
 
         const dragHandler = d3.drag()
@@ -80,5 +79,3 @@ class Colorbar {
         dragHandler(this.colorbarGroup);
     }
 }
-
-window.Colorbar = Colorbar;

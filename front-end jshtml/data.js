@@ -158,41 +158,79 @@ class Data{
 
         }            
            
-        this.set_Wavelet(this.waveletTrials)
-        this.set_LFP(this.LFPtrials)
+        if (!this.splitWavelets){
+            this.init_Wavelet(this.waveletTrials)
+            this.init_LFP(this.LFPtrials)  
+            this.set_Slider()
+        }
+        
+        const trialSlider = document.getElementById('trialSlider')
+        trialSlider.value = 0
+        trialSlider.max = Object.keys(this.waveletTrials).length-1;
+        trialSlider.disabled = false;
+
+        document.getElementById('trialNumber').textContent = 0
 
         loadingText.style.display = "none"; 
 
         return [this.waveletTrials,this.LFPtrials,this.meanWavelet, this.meanLFP]
-
     }
 
 
-    set_Wavelet(waveletTrials) {
-
+    init_Wavelet(waveletTrials) {
+        this.splitWavelets = []
 
         this.containers.forEach((container,index) => {
             const freqBin = this.frequencyBins[index];
             
-            const heatmap = new Heatmap(waveletTrials,container,freqBin);
-            heatmap.initialize();
-
+            const heatmap = new Heatmap(container,freqBin);
+            const filtWavelet = heatmap.initialize(waveletTrials);
+            heatmap.set_ColorScale(filtWavelet)
+            heatmap.draw_Heatmap(filtWavelet)
+            
             const colorbar = new Colorbar(heatmap);
             colorbar.initColorbar();
+            colorbar.set_ColorbarDragging(waveletTrials)
+            this.splitWavelets.push(heatmap)
 
         })
-            document.getElementById('trialNumber').textContent = 0
 
-            const trialSlider = document.getElementById('trialSlider')
-            trialSlider.value = 0
-            trialSlider.max = Object.keys(waveletTrials).length-1;
-            trialSlider.disabled = false;
     }
     
 
+    init_LFP(LFPtrials){
+        this.LFP = new LFPchart(LFPtrials)
+        this.LFP.initialize(LFPtrials[0])
+    }
+    
     set_LFP(LFPtrials){
+        this.LFP.initialize(LFPtrials[0])
+    }
 
-        const LFPplot = new LFPchart(LFPtrials)
-        LFPplot.initialize(LFPtrials[0])
+    set_Wavelet(waveletTrials){
+        this.splitWavelets.forEach(heatmap => {
+            const splitWavelet = heatmap.split_Freq(waveletTrials)
+            heatmap.set_ColorScale(splitWavelet)
+            heatmap.draw_Heatmap(splitWavelet)
+        });
+    }
+
+    set_Slider(){
+        const trialNumber = document.getElementById('trialNumber')
+        const trialSlider = document.getElementById('trialSlider') 
+
+        trialSlider.addEventListener('input', (event) => {
+            const trial = event.target.value;
+            trialSlider.value = trial
+            trialNumber.textContent = trial
+
+            this.splitWavelets.forEach(heatmap => {
+                const splitWavelet = heatmap.split_Freq(this.waveletTrials[trial])
+                heatmap.draw_Heatmap(splitWavelet)
+
+            });
+
+            this.LFP.initialize(this.LFPtrials[trial])
+        })
     }
 } 

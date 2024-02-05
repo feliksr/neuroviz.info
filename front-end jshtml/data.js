@@ -190,7 +190,7 @@ class Data{
             slider.value = trial
             trialNumber.textContent = trial
 
-            if (this.splitWavelets){
+            if (waveletTrials){
 
                 this.splitWavelets.forEach(heatmap => {
                     const splitWavelet = heatmap.split_Freq(waveletTrials[trial])
@@ -198,7 +198,7 @@ class Data{
                 });
             }
 
-            if (this.LFP){
+            if (LFPtrials){
                 this.LFP.initialize(LFPtrials[trial])
             }
         })
@@ -222,17 +222,6 @@ class Data{
         })
     }
         
-
-    init_LFP(){
-        this.LFP = new LFPchart()
-    }
-    
-
-    set_LFP(LFPtrials){
-        this.LFP.initialize(LFPtrials[0])
-    }
-
-    
     set_Wavelet(waveletTrials){
 
         this.splitWavelets.forEach(heatmap => {
@@ -244,4 +233,13 @@ class Data{
             heatmap.colorbar.set_ColorbarDragging(waveletTrials);          
         });
     }
+
+    init_LFP(){
+        this.LFP = new LFP();
+    }
+    
+    set_LFP(LFPtrials){
+        this.LFP.initialize(LFPtrials[0])
+    }
+
 } 

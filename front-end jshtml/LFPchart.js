@@ -1,5 +1,5 @@
 // LFPchart.js
-class LFPchart {
+class LFP {
     constructor() {
         this.container = '#container4'
         this.width = 1000;

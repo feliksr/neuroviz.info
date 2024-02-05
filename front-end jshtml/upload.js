@@ -62,17 +62,25 @@ class Upload{
     }
 
     set_Text (button){
+        let slider = this.data.init_Slider()
 
         if (button.LFPtrials){
-            this.data.init_LFP(button.LFPtrials)
-            this.data.set_LFP()
+
+            this.data.init_LFP()
+            this.data.set_LFP(button.LFPtrials)
+
+            slider.max = Object.keys(button.LFPtrials).length-1;
 
             document.getElementById('container4').style.display = 'flex'
             console.log('LFP displayed')
         }
 
         if (button.waveletTrials){
+
             this.data.init_Wavelet(button.waveletTrials)
+            this.data.set_Wavelet(button.waveletTrials)
+
+            slider.max = Object.keys(button.waveletTrials).length-1;
 
             document.getElementById('yAxisLabel').style.display = 'block'
             document.getElementById('colorbarLabel').style.display = 'block'
@@ -81,11 +89,15 @@ class Upload{
         }
 
         if (button.LFPtrials && !button.waveletTrials){
+
             document.getElementById('yAxisLabel').style.display = 'none'
             document.getElementById('colorbarLabel').style.display = 'none'
         }
-        this.data.init_Slider()
+
         this.data.set_Slider(button.waveletTrials,button.LFPtrials)
+
+        slider.value = 0
+        this.trialNumber.textContent = 0
     }
 
     update_inputValues(inputs) {
@@ -291,7 +303,6 @@ class Upload{
                 console.error('Error:', error);
             });
 
-            
             event.target.value = ''
 
         });

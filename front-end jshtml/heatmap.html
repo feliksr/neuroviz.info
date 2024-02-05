@@ -20,33 +20,19 @@
 
     <div class="container" id="container4"></div>
 
-    <div id = xAxisLabel>
+    <div id = 'xAxisLabel'>
         Time from button-press response (sec)
     </div>
 
     <div id="controls">
-
-        <div id = 'trialScroll'>
             
             <!-- <button id = "excludeTrialButton">Exclude Trial from Channels</button> -->
-            <label for="trialSlider">Trial: </label>
-            <input type="range" id="trialSlider">
+            <!-- <label for="trialSlider">Trial: </label>
+            <input type="range" id="trialSlider"> -->
+            <div id = "sliderContainer"></div>
             <span id="trialNumber"></span>
-            <button id="meanTrialsButton">Average Trials</button>
+            <div id="meanButtonContainer"></div>
             <!-- <button id="ANOVAbutton">ANOVA</button> -->
-            
-        </div>
-
-        
-        <div id="channelScroll" style="display: none;">
-            
-            <button id = "excludeChannelButton">Exclude Channel from Trials</button>
-            <label for="channelSlider">Channel: </label>
-            <input type="range" id="channelSlider">
-            <span id="channelNumber"></span>
-            <button id="meanChannelsButton">Average Channels</button>
-
-        </div>
 
     </div>
 

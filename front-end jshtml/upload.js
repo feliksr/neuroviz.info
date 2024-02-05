@@ -9,10 +9,10 @@ class Upload{
         
     }
 
-    get_heatmap(){
+    get_Heatmap(){
         const ids = [
-            'trialSlider', 'excludeTrialButton', 'loadingText',  'trialNumber', 'trialScroll', 'xAxisLabel', 'meanTrialsButton', 
-            'channelDisplay', 'channelScroll', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
+            'excludeTrialButton', 'loadingText',  'trialNumber', 'xAxisLabel', 
+            'channelDisplay', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
             'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
         ];
 
@@ -50,14 +50,13 @@ class Upload{
         // not used currently
         this.channelButtonContainer.style.display = 'none'
         this.xAxisLabel.style.display = 'none'
-        this.meanTrialsButton.style.display = 'none'
        
         // initially hidden
         document.getElementById('heatmapWrapper').style.display = 'none'
         document.getElementById('container4').style.display = 'none'
 
-        this.init_nextButton()
-        this.set_dataForm()
+        this.init_NextButton()
+        this.set_DataForm()
         this.set_WaveletButton()
         this.set_LFPbutton()
     }
@@ -66,6 +65,7 @@ class Upload{
 
         if (button.LFPtrials){
             this.data.init_LFP(button.LFPtrials)
+            this.data.set_LFP()
 
             document.getElementById('container4').style.display = 'flex'
             console.log('LFP displayed')
@@ -84,7 +84,8 @@ class Upload{
             document.getElementById('yAxisLabel').style.display = 'none'
             document.getElementById('colorbarLabel').style.display = 'none'
         }
-
+        this.data.init_Slider()
+        this.data.set_Slider(button.waveletTrials,button.LFPtrials)
     }
 
     update_inputValues(inputs) {
@@ -99,7 +100,7 @@ class Upload{
         return allFilled;    
 }
 
-    set_dataForm() {
+    set_DataForm() {
             const inputs = document.querySelectorAll('.inputValues');
 
             const timeInputs = document.querySelectorAll('.timeInput');
@@ -169,7 +170,7 @@ class Upload{
         return button
     }
     
-    init_nextButton(){
+    init_NextButton(){
         const nextButton = document.createElement('button');
     
         nextButton.className = 'groupButton';
@@ -182,7 +183,6 @@ class Upload{
     }
 
     set_GroupButton(waveletTrials,LFPtrials){
-
 
         this.heatmapView.style.display = 'block';
 
@@ -230,30 +230,27 @@ class Upload{
                 timeStop: this.timeStop,
                 freqLow: this.freqLow,
                 freqHigh: this.freqHigh
+            }));
+
+            await fetch(this.data.url + 'uploadWavelet', {
+                method: 'POST',
+                body: formData
             })
-        );
 
-        await fetch(this.data.url + 'uploadWavelet', {
-            method: 'POST',
-            body: formData
-        })
+            .then(response => response.json())
+            
+            .then(data => {
+                return data.trialsWavelet})
+            
+            .then(waveletTrials => {
+                this.set_GroupButton(waveletTrials,undefined)
+            })
+            
+            .catch(error => {console.error('Error:', error)});
 
-        .then(response => response.json())
-        
-        .then(data => {
-            return data.trialsWavelet})
-        
-        .then(waveletTrials => {
-            this.trialSlider.max = Object.keys(waveletTrials).length-1;
-            this.set_GroupButton(waveletTrials,undefined)
-        })
-        
-        .catch(error => {console.error('Error:', error)});
-
-        event.target.value = ''
-
-    });
-}
+            event.target.value = ''
+        });
+    }
 
 
     set_LFPbutton(){
@@ -287,7 +284,6 @@ class Upload{
             })
             
             .then(LFPtrials => {
-                this.trialSlider.max = Object.keys(LFPtrials).length-1;
                 this.set_GroupButton(undefined,LFPtrials)
             })
 
@@ -303,4 +299,4 @@ class Upload{
 }
 
 const dataUpload = new Upload();
-dataUpload.get_heatmap()
+dataUpload.get_Heatmap()

@@ -1,7 +1,6 @@
 // LFPchart.js
 class LFPchart {
-    constructor(LFPtrials) {
-        this.LFPtrials = LFPtrials
+    constructor() {
         this.container = '#container4'
         this.width = 1000;
         this.height = 200;

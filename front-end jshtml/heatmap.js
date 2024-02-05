@@ -15,7 +15,6 @@ class Heatmap {
 
     }
     split_Freq(wavelet){
-        console.log(wavelet)
         const filtWavelet = wavelet.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
         return filtWavelet
     }
@@ -84,7 +83,6 @@ class Heatmap {
     }
         
     draw_Heatmap(filteredData) {
-        // this.set_ColorScale(filteredData)
         this.svg.selectAll("rect")
             .data(filteredData)
             .attr("fill", d => this.colorScale(d.power));
@@ -118,22 +116,5 @@ class Heatmap {
 
         return powerValues;
     }
-
-
-
-        // const channelSlider = document.getElementById('channelSlider')
-        // const channelNumber = document.getElementById('channelNumber')
-
-        // channelSlider.addEventListener('input', (event) => {
-        //     this.page.channelIdx = event.target.value;
-        //     channelSlider.value = this.page.channelIdx
-        //     channelNumber.textContent = `${this.page.chanNumbers[this.page.channelIdx]} ${this.page.chanLabels[this.page.channelIdx]}`
-
-        //     this.page.LFPplot.initialize(); 
-            
-        //     this.singleChannelData = this.page.allWaveletChannels[this.page.channelIdx];
-        //     this.filteredData = this.singleChannelData.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
-        //     this.drawHeatmap(); 
-        // })  
-    
+   
 }

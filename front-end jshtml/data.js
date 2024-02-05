@@ -9,7 +9,6 @@ class Data{
         this.stimGroup = stimGroup
         this.allGroups = allGroups
         this.subject = 'YDX'
-        this.trial = 0
         this.channelIdx = 0
         this.run = 1
 
@@ -38,7 +37,7 @@ class Data{
             run: this.run
         }
 
-        let responseData = await this.fetchDataWithRetry(this.url + 'chans', args, this.maxRetries, this.initialDelay);
+        let responseData = await this.fetch_DataWithRetry(this.url + 'chans', args, this.maxRetries, this.initialDelay);
 
         this.chanNumbers = responseData.chanNumbers
         this.chanLabels = responseData.chanLabels
@@ -46,7 +45,7 @@ class Data{
         loadingText.style.display = "none"; 
     }
 
-    async fetchDataWithRetry(url, args, retries, delay) {
+    async fetch_DataWithRetry(url, args, retries, delay) {
         for (let i = 0; i < retries; i++) {
             try {
                 const response = await fetch(url, {
@@ -75,162 +74,174 @@ class Data{
         throw new Error('Request failed after retries');
     }
     
-    async getANOVA() {
-        pass
-    }
+    // async get_ANOVA() {
+    //     if (this.allANOVA){
+
+    //         const channelSlider = document.getElementById('channelSlider')
+    //         channelSlider.disabled = true
+
+    //         this.numChans = this.chanNumbers.length
+    //            // this.numChans = 5
+                
+    //        }else{
+    //            this.numChans = 1
+       
+    //        for (let chans = 0; chans < (this.numChans); chans++) { 
+                
+    //         console.log(chans)
+    //         if (this.allANOVA){
+    //             args.currentChannel = this.chanNumbers[chans]
+
+    //         } else {
+    //             args.currentChannel = this.chanNumbers[this.channelIdx]
+    //         }
+    //         console.log(`channel: ${args.currentChannel}`)
+
+    //         try {
+    //             this.responseData = await this.fetch_DataWithRetry(this.url + 'anova', args, this.maxRetries, this.initialDelay);
+    //         } catch (error) {
+    //             console.error('Failed to fetch data:', error);
+    //         }
+            
+    //         this.allWaveletChannels[chans] = this.responseData.channelsWavelet[0]
+    //         this.allLFPChannels[chans] = this.responseData.channelsLFP[0]
+    //         this.singleChannelWavelet = this.allWaveletChannels[this.trial]
+    //         this.singleChannelLFP = this.allLFPChannels[this.trial]
+    //     }    
+    // }
+    //     channelSlider.max = this.numChans-1
+    //     channelSlider.disabled = false
+    // }    
 
 
-    async getData() {
+    async get_Data() {
         console.log(this.chanNumbers[this.channelIdx])
-        document.getElementById('channelDisplay').textContent = `Channel ${this.chanNumbers[this.channelIdx]} ${this.chanLabels[this.channelIdx]}`;
+        
+        let channelDisplay = document.getElementById('channelDisplay')
+        channelDisplay.textContent = `Channel ${this.chanNumbers[this.channelIdx]} ${this.chanLabels[this.channelIdx]}`;
+        
+        let trialSlider
+        trialSlider = document.getElementById('trialSlider');
 
-        document.getElementById('trialSlider').disabled = true 
-
-        const channelSlider = document.getElementById('channelSlider')
-        channelSlider.disabled = true
+        if (trialSlider) {
+            trialSlider.disabled = true;
+        }
 
         const loadingText = document.getElementById('loadingText')
         loadingText.style.display = "block"; 
 
         let excludedTrialsContainer={};
+
         const args = {
             stimGroup: this.stimGroup,
             group: this.group,
-            allGroups: this.allGroups,
             subject: this.subject,
+            currentChannel: this.chanNumbers[this.channelIdx],
             excludedTrialsContainer: excludedTrialsContainer,
-            ANOVA: this.ANOVA,
-            allANOVA: this.allANOVA,
             run: this.run
         }       
-       
-        if (!this.ANOVA){
-            
-            this.numChans = 1
-            args.currentChannel = this.chanNumbers[this.channelIdx]
 
-            try {
-                this.responseData = await this.fetchDataWithRetry(this.url, args, this.maxRetries, this.initialDelay);
-            } catch (error) {
-                console.error('Failed to fetch data:', error);
-            }
-                          
-            this.waveletTrials = this.responseData.trialsWavelet
-            this.LFPtrials = this.responseData.trialsLFP
-            this.meanWavelet = this.responseData.trialsWaveletMean
-            this.meanLFP = this.responseData.trialsLFPMean
-                
-        } else {
-        
-            if (this.allANOVA){
-             this.numChans = this.chanNumbers.length
-                // this.numChans = 5
-                 
-            }else{
-                this.numChans = 1
-            }
-            
-            for (let chans = 0; chans < (this.numChans); chans++) { 
-                
-                console.log(chans)
-                if (this.allANOVA){
-                    args.currentChannel = this.chanNumbers[chans]
-
-                } else {
-                    args.currentChannel = this.chanNumbers[this.channelIdx]
-                }
-                console.log(`channel: ${args.currentChannel}`)
-
-                try {
-                    this.responseData = await this.fetchDataWithRetry(this.url + 'anova', args, this.maxRetries, this.initialDelay);
-                } catch (error) {
-                    console.error('Failed to fetch data:', error);
-                }
-                
-                this.allWaveletChannels[chans] = this.responseData.channelsWavelet[0]
-                this.allLFPChannels[chans] = this.responseData.channelsLFP[0]
-                this.singleChannelWavelet = this.allWaveletChannels[this.trial]
-                this.singleChannelLFP = this.allLFPChannels[this.trial]
-            }    
-
-            channelSlider.max = this.numChans-1
-            channelSlider.disabled = false
-
-        }            
+        let responseData
+        // this.numChans = 1
+ 
+        try {
+            responseData = await this.fetch_DataWithRetry(this.url, args, this.maxRetries, this.initialDelay)
+        } catch (error) {
+            console.error('Failed to fetch data:', error);
+        }
            
         if (!this.splitWavelets){
-            this.init_Wavelet(this.waveletTrials)
-            this.init_LFP(this.LFPtrials)  
-            this.set_Slider()
+            this.init_Wavelet(responseData.Wavelet)
+            this.init_LFP(responseData.LFP)  
         }
         
-        const trialSlider = document.getElementById('trialSlider')
-        trialSlider.value = 0
-        trialSlider.max = Object.keys(this.waveletTrials).length-1;
-        trialSlider.disabled = false;
+        loadingText.style.display = "none";
 
-        document.getElementById('trialNumber').textContent = 0
-
-        loadingText.style.display = "none"; 
-
-        return [this.waveletTrials,this.LFPtrials,this.meanWavelet, this.meanLFP]
+        return responseData
     }
 
+    init_Slider(){
+
+        const container = document.getElementById('sliderContainer');
+
+        let slider = document.getElementById('slider');
+        
+        if (slider) {
+            slider.remove();
+        }
+
+        slider = document.createElement('input');
+        slider.type = 'range';
+        slider.id = 'slider';
+
+        container.appendChild(slider);
+        
+        return slider
+
+    }
+    
+    set_Slider(waveletTrials,LFPtrials){
+
+        const trialNumber = document.getElementById('trialNumber')
+        const slider = document.getElementById('slider') 
+
+        slider.addEventListener('input', (event) => {
+            const trial = event.target.value;
+            slider.value = trial
+            trialNumber.textContent = trial
+
+            if (this.splitWavelets){
+
+                this.splitWavelets.forEach(heatmap => {
+                    const splitWavelet = heatmap.split_Freq(waveletTrials[trial])
+                    heatmap.draw_Heatmap(splitWavelet)
+                });
+            }
+
+            if (this.LFP){
+                this.LFP.initialize(LFPtrials[trial])
+            }
+        })
+    }
 
     init_Wavelet(waveletTrials) {
+
         this.splitWavelets = []
 
         this.containers.forEach((container,index) => {
             const freqBin = this.frequencyBins[index];
             
             const heatmap = new Heatmap(container,freqBin);
-            const filtWavelet = heatmap.initialize(waveletTrials);
-            heatmap.set_ColorScale(filtWavelet)
-            heatmap.draw_Heatmap(filtWavelet)
-            
-            const colorbar = new Colorbar(heatmap);
-            colorbar.initColorbar();
-            colorbar.set_ColorbarDragging(waveletTrials)
-            this.splitWavelets.push(heatmap)
+            let splitWavelet = heatmap.initialize(waveletTrials);
+            heatmap.set_ColorScale(splitWavelet);
+          
+            heatmap.colorbar = new Colorbar(heatmap);
+            heatmap.colorbar.init_Colorbar();
 
+            this.splitWavelets.push(heatmap);
         })
+    }
+        
 
+    init_LFP(){
+        this.LFP = new LFPchart()
     }
     
 
-    init_LFP(LFPtrials){
-        this.LFP = new LFPchart(LFPtrials)
-        this.LFP.initialize(LFPtrials[0])
-    }
-    
     set_LFP(LFPtrials){
         this.LFP.initialize(LFPtrials[0])
     }
 
+    
     set_Wavelet(waveletTrials){
+
         this.splitWavelets.forEach(heatmap => {
-            const splitWavelet = heatmap.split_Freq(waveletTrials)
+            const splitWavelet = heatmap.split_Freq(waveletTrials[0])
             heatmap.set_ColorScale(splitWavelet)
             heatmap.draw_Heatmap(splitWavelet)
+            heatmap.colorbar.set_ColorbarScale();
+            heatmap.colorbar.draw_Colorbar();
+            heatmap.colorbar.set_ColorbarDragging(waveletTrials);          
         });
-    }
-
-    set_Slider(){
-        const trialNumber = document.getElementById('trialNumber')
-        const trialSlider = document.getElementById('trialSlider') 
-
-        trialSlider.addEventListener('input', (event) => {
-            const trial = event.target.value;
-            trialSlider.value = trial
-            trialNumber.textContent = trial
-
-            this.splitWavelets.forEach(heatmap => {
-                const splitWavelet = heatmap.split_Freq(this.waveletTrials[trial])
-                heatmap.draw_Heatmap(splitWavelet)
-
-            });
-
-            this.LFP.initialize(this.LFPtrials[trial])
-        })
     }
 } 

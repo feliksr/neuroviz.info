@@ -259,10 +259,10 @@ def serve_data():
     trialsLFP = converterLFP.slice_trials()
 
     return jsonify({
-        "trialsWavelet": trialsWavelet,
-        "trialsLFP": trialsLFP,
-        "trialsLFPMean" : trialsLFPMean,
-        "trialsWaveletMean" : trialsWaveletMean
+        "Wavelet": trialsWavelet,
+        "LFP": trialsLFP,
+        "LFPMean" : trialsLFPMean,
+        "WaveletMean" : trialsWaveletMean
     })
 
 @application.route('/api/uploadWavelet', methods=['POST'])

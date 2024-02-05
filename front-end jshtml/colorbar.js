@@ -13,7 +13,7 @@ class Colorbar {
         // });
     }
 
-    initColorbar() {
+    init_Colorbar() {
         const rectHeight = this.heatmap.heightSVG / this.numStops;
         
         this.colorbarGroup = this.heatmap.svg.append("g")
@@ -31,10 +31,10 @@ class Colorbar {
             .attr("fill", d => d3.interpolateViridis(d / (this.numStops)))
             .attr("shape-rendering", "crispEdges")
 
-        this.setColorbarScale();
+
     }
 
-    setColorbarScale(){
+    set_ColorbarScale(){
 
         this.colorbarScale = d3.scaleLinear()
             .domain([0, this.heatmap.maxPower])
@@ -44,10 +44,9 @@ class Colorbar {
             this.colorbarScale.domain([this.heatmap.maxPower, 0])
         }
 
-        this.drawColorBar();
     }
 
-    drawColorBar() {
+    draw_Colorbar() {
         this.colorbarGroup.select('.colorbarTicks').remove();
 
         this.colorbarGroup.append('g')
@@ -56,18 +55,18 @@ class Colorbar {
             .attr("transform", `translate(${this.width}, 0)`); 
     }  
 
-    set_ColorbarDragging(wavelet) {
+    set_ColorbarDragging(waveletTrials) {
 
-        const waveletTrials = wavelet
         const dragged = () => {
             const yPosition = d3.event.y * 0.03; 
             const maxPower = this.colorbarScale.invert(yPosition);
 
             this.colorbarScale.domain([0, maxPower]);
-            this.drawColorBar();
+            this.draw_Colorbar();
             this.heatmap.colorScale.domain([0, maxPower])
-            const trial = document.getElementById('trialSlider').value
-             
+            
+            const trial = document.getElementById('slider').value
+                        
             const waveletTrial = waveletTrials[trial]
             const splitWavelet = this.heatmap.split_Freq(waveletTrial)
             this.heatmap.draw_Heatmap(splitWavelet);            

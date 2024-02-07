@@ -17,7 +17,7 @@ class homeButtons{
         stimGroupButton.forEach(button => {
             button.addEventListener('click', (event) => {
                 let buttonText = event.target.textContent; 
-                window.location.href = 'datapage.html?params=' + encodeURIComponent(buttonText);
+                window.location.href = 'DBpage.html?params=' + encodeURIComponent(buttonText);
             });
         })
     }

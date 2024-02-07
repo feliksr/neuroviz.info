@@ -1,6 +1,7 @@
 // anova.js
 
-set_ANOVA(){
+class ANOVA{
+    set_ANOVA(){
 
     document.querySelectorAll('.ANOVAbutton').forEach(button => {
 
@@ -97,7 +98,38 @@ set_ANOVA(){
         })
     }
 
+    // if (this.allANOVA){
+
+    //     const channelSlider = document.getElementById('channelSlider')
+    //     channelSlider.disabled = true
+
+    //     this.numChans = this.chanNumbers.length
+    //        // this.numChans = 5
+            
+    //    }else{
+    //        this.numChans = 1
+   
+    //    for (let chans = 0; chans < (this.numChans); chans++) { 
+            
+    //     console.log(chans)
+    //     if (this.allANOVA){
+    //         args.currentChannel = this.chanNumbers[chans]
+
+    //     } else {
+    //         args.currentChannel = this.chanNumbers[this.channelIdx]
+    //     }
+    //     console.log(`channel: ${args.currentChannel}`)
+
+    //     try {
+    //         this.responseData = await this.fetch_DataWithRetry(this.url + 'anova', args, this.maxRetries, this.initialDelay);
+    //     } catch (error) {
+    //         console.error('Failed to fetch data:', error);
+    //     }
+        
+
+  
 }
+
 
 
 

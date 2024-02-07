@@ -65,7 +65,14 @@ class Colorbar {
             this.draw_Colorbar();
             this.heatmap.colorScale.domain([0, maxPower])
             
-            const trial = document.getElementById('slider').value
+            const slider = document.getElementById('slider')
+            
+            let trial
+            if (slider){
+                trial = slider.value
+            } else {
+                trial = 0
+            }
                         
             const waveletTrial = waveletTrials[trial]
             const splitWavelet = this.heatmap.split_Freq(waveletTrial)

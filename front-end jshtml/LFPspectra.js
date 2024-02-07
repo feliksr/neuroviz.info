@@ -1,9 +1,59 @@
-// LFPchart.js
-class LFP {
+// LFPspectra.js
+
+class SpectralPlot{
     constructor() {
-        this.container = '#container4'
+        
+        this.containers= ['#container1', '#container2', '#container3'];
+
+        this.frequencyBins = [
+            { min: 60, max: 200 },
+            { min: 20, max: 60 },
+            { min: 0, max: 20 }
+        ];
+
+    }
+        
+    init_Wavelet(initSpectra) {
+
+        let splitWavelets = []
+
+        this.containers.forEach((container,index) => {
+            const freqBin = this.frequencyBins[index];
+            
+            const heatmap = new Heatmap(container,freqBin);
+            heatmap.initialize(initSpectra);
+            heatmap.set_ColorScale(initSpectra);
+          
+            heatmap.colorbar = new Colorbar(heatmap);
+            heatmap.colorbar.init_Colorbar();
+
+            splitWavelets.push(heatmap);
+        })
+
+        return splitWavelets
+    }
+        
+    set_Wavelet(waveletTrials,splitWavelets){
+
+        splitWavelets.forEach(heatmap => {
+            let splitWavelet = heatmap.split_Freq(waveletTrials[0])
+            heatmap.set_ColorScale(splitWavelet)
+            heatmap.draw_Heatmap(splitWavelet)
+            heatmap.colorbar.set_ColorbarScale();
+            heatmap.colorbar.draw_Colorbar();
+            heatmap.colorbar.set_ColorbarDragging(waveletTrials);          
+        });
+    }
+}
+
+class LFPplot {
+    
+    constructor() {
+
+        this.container = '#container4';
         this.width = 1000;
         this.height = 200;
+
         this.margin = {
             top: 0,
             right: 100,
@@ -11,7 +61,7 @@ class LFP {
             left: 50
         };
     }
-
+    
 
     initialize(singleLFP){
         const data = singleLFP

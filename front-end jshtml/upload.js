@@ -3,16 +3,14 @@
 class Upload{
 
     constructor(){
-
-        this.data = new Data
+        this.url = 'https://neuroviz.info/api/'
+        // this.url = 'http://localhost:5000/api/'
         this.groupNumber = 0
-        
     }
 
     get_Heatmap(){
         const ids = [
-            'excludeTrialButton', 'loadingText',  'trialNumber', 'xAxisLabel', 
-            'channelDisplay', 'channelNumber', 'channelButtonContainer', 'nextChan', 'prevChan',
+            'excludeTrialButton', 'loadingText',  'trialNumber', 'xAxisLabel', 'channelButtonContainer', 
             'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
         ];
 
@@ -25,25 +23,13 @@ class Upload{
                 this[id] = document.getElementById(id);
             });
 
-            (this.initialize())
+            this.initialize()
         })
                 
         .catch(error => console.error('Error:', error));
-
     }
 
-    nextButtonClick = () => {
-
-        this.groupNumber = 0;
-
-        this.heatmapView.style.display = 'none'
-        document.getElementById('heatmapWrapper').style.display = 'none'
-        document.getElementById('container4').style.display = 'none'
-        
-        const buttons = document.querySelectorAll('.groupButton');
-        buttons.forEach(btn => btn.classList.remove('active'));                
-        this.groupButtonContainer.lastElementChild.classList.add('active');
-    }
+    
 
     initialize(){
                 
@@ -55,94 +41,195 @@ class Upload{
         document.getElementById('heatmapWrapper').style.display = 'none'
         document.getElementById('container4').style.display = 'none'
 
-        this.init_NextButton()
-        this.set_DataForm()
+                this.init_NewGroupButton()
+
+        this.init_DataForm()
         this.set_WaveletButton()
         this.set_LFPbutton()
     }
 
-    set_Text (button){
-        let slider = this.data.init_Slider()
 
-        if (button.LFPtrials){
+    init_DataForm() {
 
-            this.data.init_LFP()
-            this.data.set_LFP(button.LFPtrials)
-
-            slider.max = Object.keys(button.LFPtrials).length-1;
-
-            document.getElementById('container4').style.display = 'flex'
-            console.log('LFP displayed')
+        function update_inputValues(inputs) {
+            let allFilled = true;
+                
+            inputs.forEach(input => {
+                if (input.value === '') {
+                    allFilled = false;
+                }
+            });
+    
+            return allFilled;    
         }
 
-        if (button.waveletTrials){
-
-            this.data.init_Wavelet(button.waveletTrials)
-            this.data.set_Wavelet(button.waveletTrials)
-
-            slider.max = Object.keys(button.waveletTrials).length-1;
-
-            document.getElementById('yAxisLabel').style.display = 'block'
-            document.getElementById('colorbarLabel').style.display = 'block'
-            document.getElementById('heatmapWrapper').style.display = 'block'
-            console.log('wavelet displayed')
-        }
-
-        if (button.LFPtrials && !button.waveletTrials){
-
-            document.getElementById('yAxisLabel').style.display = 'none'
-            document.getElementById('colorbarLabel').style.display = 'none'
-        }
-
-        this.data.set_Slider(button.waveletTrials,button.LFPtrials)
-
-        slider.value = 0
-        this.trialNumber.textContent = 0
-    }
-
-    update_inputValues(inputs) {
-        let allFilled = true;
-            
+        const inputs = document.querySelectorAll('.inputValues');
+        const timeInputs = document.querySelectorAll('.timeInput');
+    
         inputs.forEach(input => {
-            if (input.value === '') {
-                allFilled = false;
-            }
+            input.addEventListener('input', () => {
+                const allFilled = update_inputValues(inputs);
+                this.uploadWaveletButton.disabled = !allFilled;
+
+                if (!this.uploadWaveletButton.disabled) {
+                    this.freqLow = parseFloat(document.getElementById("freqLow").value);
+                    this.freqHigh = parseFloat(document.getElementById("freqHigh").value);
+                    this.timeStart = parseFloat(document.getElementById("timeStart").value);
+                    this.timeStop = parseFloat(document.getElementById("timeStop").value);
+                }    
+            });
         });
 
-        return allFilled;    
-}
+        timeInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                const allFilled = update_inputValues(timeInputs);
+                this.uploadLFPbutton.disabled = !allFilled;
 
-    set_DataForm() {
-            const inputs = document.querySelectorAll('.inputValues');
-
-            const timeInputs = document.querySelectorAll('.timeInput');
-        
-            inputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    const allFilled = this.update_inputValues(inputs);
-                    this.uploadWaveletButton.disabled = !allFilled;
-
-                    if (!this.uploadWaveletButton.disabled) {
-                        this.freqLow = parseFloat(document.getElementById("freqLow").value);
-                        this.freqHigh = parseFloat(document.getElementById("freqHigh").value);
-                        this.timeStart = parseFloat(document.getElementById("timeStart").value);
-                        this.timeStop = parseFloat(document.getElementById("timeStop").value);
-                    }    
-                });
+                if (!this.uploadLFPbutton.disabled) {
+                    this.timeStart = parseFloat(document.getElementById("timeStart").value);
+                    this.timeStop = parseFloat(document.getElementById("timeStop").value);
+                }    
             });
-
-            timeInputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    const allFilled = this.update_inputValues(timeInputs);
-                    this.uploadLFPbutton.disabled = !allFilled;
-
-                    if (!this.uploadLFPbutton.disabled) {
-                        this.timeStart = parseFloat(document.getElementById("timeStart").value);
-                        this.timeStop = parseFloat(document.getElementById("timeStop").value);
-                    }    
-                });
-            });
+        });
     }
+
+    newGroup_Click = () => {
+        this.groupNumber = 0;
+
+        this.heatmapView.style.display = 'none'
+        document.getElementById('heatmapWrapper').style.display = 'none'
+        document.getElementById('container4').style.display = 'none'
+        
+        const buttons = document.querySelectorAll('.groupButton');
+        buttons.forEach(btn => btn.classList.remove('active'));                
+        this.groupButtonContainer.lastElementChild.classList.add('active');
+    }
+
+    init_NewGroupButton () {
+        const button = document.createElement('button');
+    
+        button.className = 'groupButton';
+        button.textContent = 'New Group';
+        button.addEventListener('click', this.newGroup_Click);
+ 
+        this.groupButtonContainer.appendChild(button)
+        this.groupButtonContainer.style.display = 'none'
+    }
+
+
+    set_WaveletButton(){
+
+        this.uploadWaveletButton.addEventListener('click', () => {
+            this.waveletFile.click();
+        });
+    
+        this.waveletFile.addEventListener('change', async (event) => {
+            this.loadingText.style.display = "block";  
+            
+            let file = event.target.files[0];
+            let formData = new FormData();
+            formData.append('file', file);
+            
+            formData.append('json_data', JSON.stringify({
+                timeStart: this.timeStart,
+                timeStop: this.timeStop,
+                freqLow: this.freqLow,
+                freqHigh: this.freqHigh
+            }));
+
+            await fetch(this.url + 'uploadWavelet', {
+                method: 'POST',
+                body: formData
+            })
+
+            .then(response => response.json())
+            
+            .then(data => {
+                return data.trialsWavelet})
+            
+            .then(waveletTrials => {
+                this.set_GroupButton(waveletTrials,undefined)
+            })
+            
+            .catch(error => {console.error('Error:', error)});
+
+            event.target.value = ''
+        });
+    }
+
+
+    set_LFPbutton(){
+        
+        this.uploadLFPbutton.addEventListener('click', () => {
+            this.LFPfile.click();
+        });
+
+        this.LFPfile.addEventListener('change', async (event) => {
+            this.loadingText.style.display = "block";
+            
+            let file = event.target.files[0];
+ 
+            let formData = new FormData();
+            formData.append('file', file);
+
+            formData.append('json_data', JSON.stringify({
+                timeStart: this.timeStart,
+                timeStop: this.timeStop,
+            }));
+
+
+            await fetch(this.url + 'uploadLFP', {
+                method: 'POST',
+                body: formData
+            })
+
+            .then(response => response.json())
+
+            .then(data => {
+                return data.LFP
+            })
+            
+            .then(LFPtrials => {
+                this.set_GroupButton(undefined,LFPtrials)
+            })
+
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+            event.target.value = ''
+        });
+    }
+    
+    
+    set_GroupButton(waveletTrials,LFPtrials){
+
+        this.heatmapView.style.display = 'block';
+
+        let button
+
+        if (this.groupNumber == 0){
+            button = this.init_GroupButton()
+        }else{
+            button = this.groupButtonContainer.children[this.groupNumber-1]
+        }
+
+        if (waveletTrials){
+            console.log('added wavelet')
+            button.Wavelet = waveletTrials;
+        }
+
+        if (LFPtrials){
+            console.log('added LFP')
+            button.LFP = LFPtrials;   
+        }
+
+        this.set_Text(button);
+
+        this.loadingText.style.display = "none"; 
+ 
+    }    
+    
 
     init_GroupButton(){
         const container = this.groupButtonContainer
@@ -173,7 +260,6 @@ class Upload{
             LFP.style.display = 'none'
             
             this.set_Text(button)
-            
         });
 
         container.insertBefore(button,container.children[containerLength-1])
@@ -182,130 +268,52 @@ class Upload{
         return button
     }
     
-    init_NextButton(){
-        const nextButton = document.createElement('button');
-    
-        nextButton.className = 'groupButton';
-        nextButton.textContent = 'New Group';
-        nextButton.addEventListener('click', this.nextButtonClick);
- 
-        this.groupButtonContainer.appendChild(nextButton)
-        this.groupButtonContainer.style.display = 'none'
-        
-    }
 
-    set_GroupButton(waveletTrials,LFPtrials){
+    set_Text (button){
+        let maxTrials
+        let splitWavelets
+        let LFPchart
+        let sliderElement = new Slider()
+        let slider = sliderElement.init_Slider()
 
-        this.heatmapView.style.display = 'block';
+        if (button.LFP){
 
-        let button
+            let initLFP = button.LFP[0]
+            let LFPchart = new LFPplot()
+            LFPchart.initialize(initLFP)
 
-        if (this.groupNumber == 0){
-            button = this.init_GroupButton()
-        
-        }else{
-            button = this.groupButtonContainer.children[this.groupNumber-1]
+            document.getElementById('container4').style.display = 'flex'
+            console.log('LFP displayed')
+
+            maxTrials = Object.keys(button.LFP).length-1;
         }
 
-        if (waveletTrials){
-            console.log('added wavelet')
-            button.waveletTrials = waveletTrials;
+        if (button.Wavelet){
+
+            let spectra = new SpectralPlot();
+            let initWavelet = button.Wavelet[0];
+            splitWavelets = spectra.init_Wavelet(initWavelet);
+            spectra.set_Wavelet(button.Wavelet,splitWavelets);
+
+            document.getElementById('yAxisLabel').style.display = 'block';
+            document.getElementById('colorbarLabel').style.display = 'block';
+            document.getElementById('heatmapWrapper').style.display = 'block';
+            console.log('wavelet displayed');
+
+            maxTrials = Object.keys(button.Wavelet).length-1;
         }
 
-        if (LFPtrials){
-            console.log('added LFP')
-            button.LFPtrials = LFPtrials;
-            
+        if (button.LFP && !button.Wavelet){
+
+            document.getElementById('yAxisLabel').style.display = 'none'
+            document.getElementById('colorbarLabel').style.display = 'none'
         }
 
-        this.set_Text(button);
+        sliderElement.set_Slider(button,splitWavelets,LFPchart)
 
-        this.loadingText.style.display = "none"; 
- 
-    }
-
-    set_WaveletButton(){
-
-        this.uploadWaveletButton.addEventListener('click', () => {
-            this.waveletFile.click();
-        });
-    
-        this.waveletFile.addEventListener('change', async (event) => {
-            this.loadingText.style.display = "block";  
-            
-            let file = event.target.files[0];
-            let formData = new FormData();
-            formData.append('file', file);
-            
-            formData.append('json_data', JSON.stringify({
-                timeStart: this.timeStart,
-                timeStop: this.timeStop,
-                freqLow: this.freqLow,
-                freqHigh: this.freqHigh
-            }));
-
-            await fetch(this.data.url + 'uploadWavelet', {
-                method: 'POST',
-                body: formData
-            })
-
-            .then(response => response.json())
-            
-            .then(data => {
-                return data.trialsWavelet})
-            
-            .then(waveletTrials => {
-                this.set_GroupButton(waveletTrials,undefined)
-            })
-            
-            .catch(error => {console.error('Error:', error)});
-
-            event.target.value = ''
-        });
-    }
-
-
-    set_LFPbutton(){
-        
-        this.uploadLFPbutton.addEventListener('click', () => {
-            this.LFPfile.click();
-        });
-
-        this.LFPfile.addEventListener('change', async (event) => {
-            this.loadingText.style.display = "block";
-            let file = event.target.files[0];
-            console.log("File selected:", file.name);
-            let formData = new FormData();
-            formData.append('file', file);
-
-            formData.append('json_data', JSON.stringify({
-                timeStart: this.timeStart,
-                timeStop: this.timeStop,
-            }));
-
-            await fetch(this.data.url + 'uploadLFP', {
-                method: 'POST',
-                body: formData
-            })
-
-            .then(response => response.json())
-
-            .then(data => {
-                return data.trialsLFP
-
-            })
-            
-            .then(LFPtrials => {
-                this.set_GroupButton(undefined,LFPtrials)
-            })
-
-            .catch(error => {
-                console.error('Error:', error);
-            });
-
-            event.target.value = ''
-
-        });
+        slider.max = maxTrials;
+        slider.value = 0;
+        this.trialNumber.textContent = 0
     }
 }
 

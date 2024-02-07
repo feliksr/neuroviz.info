@@ -146,6 +146,7 @@ class Database:
      
 @application.route('/api/chans', methods=['POST'])
     
+
 def get_chans():
     args = request.json
     
@@ -164,6 +165,7 @@ def get_chans():
 
 @application.route('/api/anova', methods=['POST'])
     
+
 def run_ANOVA():    
     args = request.json
     subject = args.get('subject')
@@ -222,7 +224,6 @@ def serve_data():
     category = args.get('group')
     stimGroup=args.get('stimGroup')
     currentChannel = args.get('currentChannel')
-    excludedTrials = args.get('excludedTrialsContainer')
     run = args.get('run')
     
     db = Database()
@@ -244,26 +245,27 @@ def serve_data():
     meanWavelet = np.expand_dims(meanWavelet,axis=-1)
 
     converterWaveletMean = JsonifyWavelet(meanWavelet,timeStart,timeStop,freqScale)
-    trialsWaveletMean = converterWaveletMean.slice_trials()
+    WaveletMean = converterWaveletMean.slice_trials()
 
     meanLFP = np.mean(LFPdata,axis=-1)
     meanLFP = np.expand_dims(meanLFP,axis=-1)
 
     converterLFPMean = JsonifyLFP(meanLFP,timeStart,timeStop)
-    trialsLFPMean = converterLFPMean.slice_trials()
+    LFPMean = converterLFPMean.slice_trials()
     
     converterWavelet = JsonifyWavelet(waveletData,timeStart,timeStop,freqScale)
     converterLFP = JsonifyLFP(LFPdata,timeStart,timeStop)
 
-    trialsWavelet = converterWavelet.slice_trials()
-    trialsLFP = converterLFP.slice_trials()
+    Wavelet = converterWavelet.slice_trials()
+    LFP = converterLFP.slice_trials()
 
     return jsonify({
-        "Wavelet": trialsWavelet,
-        "LFP": trialsLFP,
-        "LFPMean" : trialsLFPMean,
-        "WaveletMean" : trialsWaveletMean
+        "Wavelet": Wavelet,
+        "LFP": LFP,
+        "LFPMean" : LFPMean,
+        "WaveletMean" : WaveletMean
     })
+
 
 @application.route('/api/uploadWavelet', methods=['POST'])
 
@@ -278,26 +280,41 @@ def upload_Wavelet():
     waveletData = np.load(waveletRequest)
     freqScale = np.logspace(np.log10(freqLow), np.log10(freqHigh), waveletData.shape[0])
 
+    meanWavelet = np.mean(waveletData,axis=-1)
+    meanWavelet = np.expand_dims(meanWavelet,axis=-1)
+
+    converterWaveletMean = JsonifyWavelet(meanWavelet,timeStart,timeStop,freqScale)
+    WaveletMean = converterWaveletMean.slice_trials()
+
     converter = JsonifyWavelet(waveletData,timeStart,timeStop,freqScale)
-    trialsWavelet = converter.slice_trials()
+    Wavelet = converter.slice_trials()
 
     return jsonify({
-        "trialsWavelet": trialsWavelet
+        "trialsWavelet": Wavelet,
+        "WaveletMean" : WaveletMean,
     })
 
+
 @application.route('/api/uploadLFP', methods=['POST'])
+
 def upload_LFP():
     json_data = json.loads(request.form['json_data'])
     timeStart = json_data['timeStart']
     timeStop = json_data['timeStop']
     
-    lfpRequest = request.files['file']
-    lfpData = np.load(lfpRequest)
+    LFPrequest = request.files['file']
+    LFPdata = np.load(LFPrequest)
 
-    converter = JsonifyLFP(lfpData,timeStart,timeStop)
+    meanLFP = np.mean(LFPdata,axis=-1)
+    meanLFP = np.expand_dims(meanLFP,axis=-1)
 
-    trialsLFP = converter.slice_trials()
+    converterLFPMean = JsonifyLFP(meanLFP,timeStart,timeStop)
+    LFPMean = converterLFPMean.slice_trials()
+
+    converter = JsonifyLFP(LFPdata,timeStart,timeStop)
+    LFP = converter.slice_trials()
 
     return jsonify({
-        "trialsLFP": trialsLFP
+        "LFP": LFP,
+        "LFPMean" : LFPMean
     })

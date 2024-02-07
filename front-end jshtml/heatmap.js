@@ -1,4 +1,5 @@
 class Heatmap {
+    
     constructor(container,freqBin) {
         
         this.container = container
@@ -14,22 +15,22 @@ class Heatmap {
         };
 
     }
+    
     split_Freq(wavelet){
         const filtWavelet = wavelet.filter(d => d.frequency >= this.freqBin.min && d.frequency <= this.freqBin.max);
         return filtWavelet
     }
 
-    initialize(waveletTrials) {
+    initialize(initSpectra) {
             d3.select(this.container)
                 .select("svg")
                 .remove(); 
 
-            const initWavelet = waveletTrials[0];
-            const filtWavelet = this.split_Freq(initWavelet);
+            let filtWavelet = this.split_Freq(initSpectra);
 
-            const allFreqBins = new Set(initWavelet.map(d => d.frequency)).size
-            const numFreqBins = new Set(filtWavelet.map(d => d.frequency)).size
-            const numTimeBins = new Set(filtWavelet.map(d => d.time)).size
+            let allFreqBins = new Set(initSpectra.map(d => d.frequency)).size
+            let numFreqBins = new Set(filtWavelet.map(d => d.frequency)).size
+            let numTimeBins = new Set(filtWavelet.map(d => d.time)).size
             
             this.heightSVG = this.height * (numFreqBins/allFreqBins)
             

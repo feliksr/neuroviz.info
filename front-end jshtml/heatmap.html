@@ -1,8 +1,10 @@
-     <div id="channelButtonContainer">
-        <button id="prevChan" class="button">Previous Channel</button>
-        <h1 id="channelDisplay" style="text-align:center;"></h1>
-        <button id="nextChan" class="button">Next Channel</button>
-    </div>
+        <div id="channelButtonContainer">
+
+            <button id="prevChan" class="button">Previous Channel</button>
+            <select id="chanSelect"></select>
+            <button id="nextChan" class="button">Next Channel</button>
+        </div>
+
 
     <div id = "containers">
         
@@ -27,11 +29,12 @@
     <div id="controls">
             
             <!-- <button id = "excludeTrialButton">Exclude Trial from Channels</button> -->
-            <!-- <label for="trialSlider">Trial: </label>
-            <input type="range" id="trialSlider"> -->
+            <label id = sliderLabel>Trial</label>
             <div id = "sliderContainer"></div>
             <span id="trialNumber"></span>
-            <div id="meanButtonContainer"></div>
+            <div id="meanButtonContainer">
+                <button id = 'meanButton'></button>
+            </div>
             <!-- <button id="ANOVAbutton">ANOVA</button> -->
 
     </div>

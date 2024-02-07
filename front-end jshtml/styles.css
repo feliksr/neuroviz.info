@@ -34,12 +34,19 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 
+#controls label {
+    font-size: 1.5em;  
+    margin-right: 5px;
+}
 
-#controls label, #controls span {
-    margin-right: 10px;
+#controls span {
+    margin-right: 20px;  
+    margin-left: 5px;
     font-size: 1.5em;  
 }
 
@@ -96,6 +103,7 @@ svg .LFP-label {
     justify-content: center;
     align-items: center;
     gap: 40px;
+    margin-bottom: 20px;
 }
 
 .groupButton.active, #ANOVAbutton.active, #meanButton.active, #excludeTrialButton.active, #allANOVA.active {
@@ -200,3 +208,17 @@ svg .LFP-label {
     transform: translate(-450px, 15%);
 }
 
+#chanSelect {
+    width: 30%; 
+    height: 40px;
+    font-size: 24px;
+    padding: 5px 10px;
+    border: 2px solid #007bff;
+    border-radius: 5px; 
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); 
+    
+}
+
+#chanSelect option {
+    white-space: pre;
+}

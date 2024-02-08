@@ -145,8 +145,6 @@ class Database:
         return channelArrays, timeStart, timeStop, freqScale_array, xBinsWavelet, yBinsWavelet
      
 @application.route('/api/chans', methods=['POST'])
-    
-
 def get_chans():
     args = request.json
     
@@ -163,18 +161,20 @@ def get_chans():
         "chanLabels": chanLabels
     })
 
-@application.route('/api/anova', methods=['POST'])
-    
+# @application.route('api/runANOVA', methods= ['POST'])
 
-def run_ANOVA():    
+# def run_ANOVA():
+#     pass
+
+@application.route('/api/getANOVA', methods=['POST'])
+
+def get_ANOVA():    
     args = request.json
     subject = args.get('subject')
     currentChannel = args.get('currentChannel')
-
     run = args.get('run')
     allGroups = args.get('allGroups')
     stimGroup = args.get('stimGroup')
-    excludedTrials = args.get('excludedTrialsContainer')
 
     db = Database()
     
@@ -208,12 +208,12 @@ def run_ANOVA():
     
     converterWaveletANOVA = JsonifyWavelet(waveletANOVA,timeStart, timeStop, freqScale)
     converterLFPANOVA = JsonifyLFP(LFPANOVA,timeStart, timeStop)
-    channelsWavelet = converterWaveletANOVA.slice_trials()
-    channelsLFP = converterLFPANOVA.slice_trials()
+    channelWavelets = converterWaveletANOVA.slice_trials()
+    channelLFPs = converterLFPANOVA.slice_trials()
 
     return jsonify({
-        "channelsWavelet": channelsWavelet,
-        "channelsLFP": channelsLFP
+        "channelWavelets": channelWavelets,
+        "channelLFPs": channelLFPs
     })
 
 @application.route('/api/', methods=['POST'])
@@ -290,7 +290,7 @@ def upload_Wavelet():
     Wavelet = converter.slice_trials()
 
     return jsonify({
-        "trialsWavelet": Wavelet,
+        "Wavelet": Wavelet,
         "WaveletMean" : WaveletMean,
     })
 

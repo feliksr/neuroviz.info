@@ -28,7 +28,7 @@ class Slider {
         slider.addEventListener('input', (event) => {
             const trial = event.target.value;
             slider.value = trial
-            trialNumber.textContent = trial
+            trialNumber.textContent = parseInt(trial) + 1
 
             if (button.Wavelet){
 

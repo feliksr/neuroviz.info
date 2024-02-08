@@ -111,8 +111,6 @@ class DBpage{
             })
         }
 
-        
-       
         groupButton.meanButton = this.init_MeanButton()
         
         groupButton.meanButton.addEventListener('click', () => {
@@ -142,7 +140,6 @@ class DBpage{
 
     view_Trials(groupButton){
 
-        // this.channelDisplay.textContent = `Channel ${this.chanNumbers[this.channelIdx]} ${this.chanLabels[this.channelIdx]}`;
         let initSpectra = groupButton.Wavelet[0]
         let spectra = new SpectralPlot()
         let splitWavelets = spectra.init_Wavelet(initSpectra)
@@ -170,9 +167,11 @@ class DBpage{
             sliderBar.value = 0
             sliderBar.max = Object.keys(groupButton.Wavelet).length-1;
 
-            this.trialNumber.textContent = 0
+            this.trialNumber.textContent = 1
             this.trialNumber.style.display = 'block'
+            document.getElementById('slider').style.display = 'block'
             this.sliderLabel.style.display = 'block'
+
         }
                 
         this.heatmapView.style.display = 'block'

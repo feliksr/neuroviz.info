@@ -1,6 +1,7 @@
 //datapage.js
 
 class DBpage{
+
     constructor(){
 
         this.groupTypes = {
@@ -15,8 +16,9 @@ class DBpage{
     intialize(){
 
         const ids = [
-            'excludeTrialButton', 'loadingText', 'nextChan', 'sliderLabel', 'chanSelect',
-            'trialNumber', 'prevChan', 'groupButtonContainer', 'channelButtonContainer', 'heatmapView'
+            'nextChan', 'prevChan', 'chanSelect', 'channelButtonContainer',
+            'trialNumber', 'excludeTrialButton', 'meanButton', 'buttonANOVA', 
+            'groupButtonContainer', 'xAxisLabel', 'heatmapView'
         ];
 
         fetch('heatmap.html')
@@ -30,19 +32,24 @@ class DBpage{
                 this[id] = document.getElementById(id);
             });
 
+            dataLink.clear_Cache()
             this.init_GroupButtons()
             this.set_ChannelButtons()
-            // this.set_ANOVA()
+            viewer.init_ButtonMean()
+            viewer.init_ButtonANOVA(dataLink)
+            
             // this.set_excludeTrialButton()
+            this.channelButtonContainer.style.display = 'none'
+            this.xAxisLabel.textContent = 'Time from button-press response (sec)'
         })
 
         .catch(error => console.error('Error:', error));
     }
 
-
+    
     async init_GroupButtons() {
 
-        let container = document.getElementById('groupButtonContainer')
+        let container = this.groupButtonContainer
         
         while (container.firstChild){
             container.removeChild(container.firstChild)
@@ -57,126 +64,68 @@ class DBpage{
         allGroups.forEach(str => {
             
             let groupButton = document.createElement('button');
-            groupButton.textContent = str;
             groupButton.className = 'groupButton';
+            groupButton.textContent = str;
+            groupButton.group = str
             groupButton.stimGroup = stimGroup
-            
             container.appendChild(groupButton)
-            this.set_GroupButton(groupButton)
+            groupButton.groupNumber = container.children.length
+
+            this.set_GroupButtonClick(groupButton)
         });
     }
 
     
-    set_GroupButton(groupButton){
+    set_GroupButtonClick(groupButton){
 
-        groupButton.addEventListener('click', async (event) => {
+        groupButton.addEventListener('click', async () => {
                 
-                let buttons = document.querySelectorAll('.groupButton');
+            await this.set_GroupButtonData(groupButton)
+            
+            let data
+            if (!this.buttonANOVA.classList.contains('active')){
+                document.querySelectorAll('.groupButton')
                 
-                buttons.forEach(btn => btn.classList.remove('active'));                
+                .forEach(button => 
+                    button.classList.remove('active')
+                );
                 
-                groupButton.classList.add('active'); 
-                groupButton.group = event.target.textContent;
-                this.group = event.target.textContent
+                data = groupButton
 
-                // this.excludedContainers.forEach(container => container.style.display = 'none');
-                // this.excludedTrialsContainer[this.page.group].style.display = 'block'
-                this.set_Data(groupButton)                            
+            } else if(this.buttonANOVA.classList.contains('active')){
+                data = await viewer.run_ANOVA(groupButton,dataLink)
+            }
+            
+            groupButton.classList.add('active'); 
+            
+            viewer.view_Trials(data)
         })
     }
     
 
-    async set_Data(groupButton){
-        
-        let database = new DBLink()
-                
+    async set_GroupButtonData(button){
+               
         if (!this.chanNumbers){
-            let chans = await database.get_Chans(groupButton)
-            
-            this.chanNumbers =  chans.chanNumbers;
-            this.chanLabels = chans.chanLabels;
+
+            const chans      = await dataLink.get_Chans(button)
+            this.chanNumbers = chans.chanNumbers;
+            this.chanLabels  = chans.chanLabels;
             this.set_ChannelSelect()
         } 
         
-        groupButton.chanNumbers =  this.chanNumbers;
-        groupButton.chanLabels = this.chanLabels;
+        button.chanNumbers =  this.chanNumbers;
+        button.chanLabels = this.chanLabels;
         
-        
-        if (!groupButton.Wavelet){
+        if (!button.wavelets){
+            console.log('got data')
             
-            let responseData = await database.get_Data(groupButton,this.channelIdx);
-            
-            Object.keys(responseData).forEach(key => {
-                groupButton[key] = responseData[key];
-            })
+            const responseData = await dataLink.get_Data(button,this.channelIdx);
+            const data = dataLink.parse_Data(responseData)
+            button.wavelets = data.wavelets
+            button.LFPs = data.LFPs
         }
 
-        groupButton.meanButton = this.init_MeanButton()
-        
-        groupButton.meanButton.addEventListener('click', () => {
-            groupButton.meanButton.classList.toggle('active');
-            this.view_Trials(groupButton)
-        })
-        
-        this.view_Trials(groupButton)
     }
-
-
-    init_MeanButton(){
-
-        let container = document.getElementById('meanButtonContainer')
-        
-        document.getElementById('meanButton').remove()
-
-        let meanButton = document.createElement('button')
-        
-        meanButton.id = 'meanButton'
-        meanButton.textContent = 'Average Trials'
-        
-        container.appendChild(meanButton)
-        return meanButton
-    }
-
-
-    view_Trials(groupButton){
-
-        let initSpectra = groupButton.Wavelet[0]
-        let spectra = new SpectralPlot()
-        let splitWavelets = spectra.init_Wavelet(initSpectra)
-        
-        let LFP = new LFPplot()
-       
-        if (groupButton.meanButton.classList.contains('active')) {
-
-            spectra.set_Wavelet(groupButton.WaveletMean, splitWavelets)
-            LFP.initialize(groupButton.LFPMean[0])
-
-            document.getElementById('slider').remove()
-            this.trialNumber.style.display = 'none'
-            this.sliderLabel.style.display = 'none'
-
-
-        } else {
-
-            spectra.set_Wavelet(groupButton.Wavelet, splitWavelets)
-            LFP.initialize(groupButton.LFP[0])
-            
-            let slider = new Slider()
-            let sliderBar = slider.init_Slider()
-            slider.set_Slider(groupButton,splitWavelets)
-            sliderBar.value = 0
-            sliderBar.max = Object.keys(groupButton.Wavelet).length-1;
-
-            this.trialNumber.textContent = 1
-            this.trialNumber.style.display = 'block'
-            document.getElementById('slider').style.display = 'block'
-            this.sliderLabel.style.display = 'block'
-
-        }
-                
-        this.heatmapView.style.display = 'block'
-    }
-
 
     set_ChannelButtons(){
        
@@ -197,6 +146,7 @@ class DBpage{
         })
     }
 
+
     set_ChannelSelect(){
    
         const chanSelect = document.getElementById('chanSelect');
@@ -207,21 +157,14 @@ class DBpage{
 
             chanSelect.appendChild(channel);
         });
-        
 
         chanSelect.addEventListener('change', () => {
             this.channelIdx = chanSelect.selectedIndex
             this.init_GroupButtons();
         });
-        
-    }
-    
-
-    set_ANOVA(){
-        document.getElementById('ANOVAbutton')
     }
 
-
+       
     // set_ExcludeTrialButton(){
 
     //     this.excludeTrialButton.addEventListener('click', () => {
@@ -259,6 +202,7 @@ class DBpage{
     // }
 
 }
-
+const dataLink = new LinkAPI()
+const viewer = new Elements()
 const page = new DBpage();
 page.intialize();

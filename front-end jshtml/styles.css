@@ -17,23 +17,23 @@ body {
     text-align: center
 }
 
-#containers{
+#containers, #sliderElements{
     display: flex;
     align-items: center;  
     justify-content: center;
           
 }
 
-#heatmapWrapper,  #container4  {
+
+#container4, #heatmapWrapper  {
     display: flex;
     flex-direction: column; 
-    align-items: center;  
+    align-items: center; 
 }
 
-#controls, #sliderContainer, #meanButtonContainer, #trialNumber{
+#sliderDiv {
     display: flex;
     justify-content: center;
-    align-items: center;
     margin-top: 10px;
     margin-bottom: 10px;
 }
@@ -85,19 +85,6 @@ svg .LFP-label {
     display: inline-block;
 }
 
-.button, .groupButton {
-    padding: 10px 20px;
-    font-size: 1.2em;
-    border-radius: 5px;
-
-}
-
-#meanButton, #ANOVAbutton, #excludeTrialButton, #excludeChannelButton, #allANOVA{
-    padding: 5px 10px;
-    font-size: 1.1em;
-    border-radius: 5px; 
-}
-
 #channelButtonContainer, #groupButtonContainer {
     display: flex;
     justify-content: center;
@@ -106,29 +93,24 @@ svg .LFP-label {
     margin-bottom: 20px;
 }
 
-.groupButton.active, #ANOVAbutton.active, #meanButton.active, #excludeTrialButton.active, #allANOVA.active {
-    background-color: #555;
-    color: white;
-}
-
 .colorbar-rect {
     cursor: pointer;
   }
 
-.excludedTrialsContainer{
+/* .excludedTrialsContainer{
     width: 10%;
     display: flex;
     justify-content: center;  
     align-items: center; 
-}
+} */
 
-#textContainer {
+/* #textContainer {
     flex-grow: 0; 
     flex-shrink: 0; 
     width: 500px; 
     overflow: hidden; 
     text-align: left;
-}
+} */
 
 #sliderContainer{
     width: 500px;
@@ -136,20 +118,9 @@ svg .LFP-label {
     overflow: hidden; 
 }
 
-#uploadButtonsDiv{
-    display: flex;
-    justify-content: center;
-    padding-top: 10px;
-    padding-bottom: 20px;
-    gap: 10px;
-}
 
-.uploadButtons, .groupButton {
-    position:relative;
-    padding: 10px;
-    font-size: 1.2em;
-    border-radius: 5px;
-    width: 200px;
+.containerUploadButtons {
+    position: relative;
 }
 
 .uploadButtons:hover .tooltipText {
@@ -159,8 +130,6 @@ svg .LFP-label {
 .tooltipText {
     display: none;
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
     background-color: #ffffff;
     text-align: center;
     padding: 5px;
@@ -195,12 +164,39 @@ svg .LFP-label {
     text-align: center;
 }
 
+.groupButton.active, #buttonANOVA.active, #meanButton.active, 
+#excludeTrialButton.active, #allANOVA.active, #buttonNew.active{
+    background-color: #555;
+    color: white;
+}
+
+#meanButton, #buttonANOVA, #excludeTrialButton, #allANOVA {
+    padding: 5px 10px;
+    font-size: 1.1em;
+    border-radius: 5px; 
+}
+
+.uploadButtons, .groupButton, #buttonNew {
+    padding: 10px;
+    font-size: 1.2em;
+    border-radius: 5px;
+    width: 200px;
+}
+
 .stimGroupButton, #uploadButton{
     padding: 10px 20px;
     border-radius: 10px;
     font-size: 1.5em;
     margin: 20px;
     margin-bottom: 100px;
+}
+
+#uploadButtonsDiv{
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    gap: 10px;
 }
 
 #sessionText {

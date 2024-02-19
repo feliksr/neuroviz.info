@@ -33,15 +33,15 @@ class SpectralPlot{
         return splitWavelets
     }
         
-    set_Wavelet(waveletTrials,splitWavelets){
+    set_Wavelet(d3wavelets,splitWavelets){
 
         splitWavelets.forEach(heatmap => {
-            let splitWavelet = heatmap.split_Freq(waveletTrials[0])
+            let splitWavelet = heatmap.split_Freq(d3wavelets.filter(d => d.trial === 1))
             heatmap.set_ColorScale(splitWavelet)
             heatmap.draw_Heatmap(splitWavelet)
             heatmap.colorbar.set_ColorbarScale();
             heatmap.colorbar.draw_Colorbar();
-            heatmap.colorbar.set_ColorbarDragging(waveletTrials);          
+            heatmap.colorbar.set_ColorbarDragging(d3wavelets);       
         });
     }
 }
@@ -77,11 +77,11 @@ class LFPplot {
    
         const xScale = d3.scaleLinear()
             .rangeRound([0, this.width])
-            .domain(d3.extent(data, d => d.x));
+            .domain(d3.extent(data, d => d.time));
 
         const yScale = d3.scaleLinear()
             .rangeRound([this.height, 0])
-            .domain(d3.extent(data, d => d.y));
+            .domain(d3.extent(data, d => d.voltage));
         
         svg.append("g")
             .attr("transform", `translate(${this.width + this.margin.left}, 0)`)
@@ -108,8 +108,8 @@ class LFPplot {
             .attr("fill", "#D3D3D3");
         
         const line = d3.line()
-            .x(d => xScale(d.x)) 
-            .y(d => yScale(d.y)); 
+            .x(d => xScale(d.time)) 
+            .y(d => yScale(d.voltage)); 
         
         svg.append('path')
             .attr("transform", `translate(${this.margin.left}, 0)`)

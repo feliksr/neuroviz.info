@@ -121,7 +121,6 @@ if __name__ == "__main__":
         wavelet, LFP = dataLoader.get_data(eng, category)
         waveletShape = wavelet[:,::4,:,:].shape
         print(waveletShape) 
-        KeyboardInterrupt
         session = db.insert_subject(conn,cursor,subject,run,stimGroup,category,lenTime,freqScale,[waveletShape[0],waveletShape[1]])
         print(category)
         

@@ -4,13 +4,12 @@ class homeButtons{
     constructor(){
 
         document.getElementById('uploadButton').addEventListener('click', () => {
-            window.location.href = 'upload.html'
-        });
+                window.location.href = 'upload.html'
+        })
 
         this.set_stimGroupButtons();
-
     }
-
+    
     set_stimGroupButtons(){
         let stimGroupButton = document.querySelectorAll('.stimGroupButton')
 

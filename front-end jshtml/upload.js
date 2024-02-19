@@ -2,18 +2,11 @@
 
 class Upload{
 
-    constructor(){
-        this.url = 'https://neuroviz.info/api/'
-        // this.url = 'http://localhost:5000/api/'
-
-        this.groupNumber = 0
-    }
-  
-
     get_Heatmap(){
         const ids = [
-            'excludeTrialButton', 'loadingText',  'trialNumber', 'xAxisLabel', 'channelButtonContainer', 'sliderLabel',
-            'groupButtonContainer', 'heatmapView', 'uploadWaveletButton','uploadLFPbutton','waveletFile','LFPfile'
+            'excludeTrialButton', 'loadingText',, 'meanButton', 'fileUpload',
+            'xAxisLabel', 'buttonANOVA', 'groupButtonContainer', 
+            'heatmapView', 'buttonUploadLFP','buttonUploadWavelet' 
         ];
 
         fetch('heatmap.html')
@@ -33,50 +26,104 @@ class Upload{
 
 
     initialize(){
-                
-        // not used currently
-        this.channelButtonContainer.style.display = 'none'
-        this.xAxisLabel.style.display = 'none'
-       
-        // initially hidden
-        document.getElementById('heatmapWrapper').style.display = 'none'
-        document.getElementById('container4').style.display = 'none'
-        
-        
-        this.init_NewGroupButton()
-        this.init_DataForm()
-        this.set_WaveletButton()
-        this.set_LFPbutton()
-    }
 
+        dataLink.clear_Cache()
+
+        this.groupNumber = 0;
+        this.xAxisLabel.textContent = 'Time (sec)'
+        
+        this.init_ButtonNewGroup()
+        this.init_DataForm()
+        this.init_ButtonsUpload()
+
+        viewer.init_ButtonMean()
+        viewer.init_ButtonANOVA(dataLink)
+
+    }
+    
+    wrap_Data() {
+        let groupNumber
+
+        if (this.groupNumber === 0){
+            groupNumber = this.groupButtonContainer.children.length
+        } else {
+            groupNumber = this.groupNumber
+        }
+        
+        const args = {}
+        args.formData = {
+            timeStart   : this.timeStart,
+            timeStop    : this.timeStop,
+            freqLow     : this.freqLow,
+            freqHigh    : this.freqHigh,
+            groupNumber : groupNumber 
+        }
+        return args 
+    }
+    
+
+    init_ButtonsUpload() {
+        
+        let url 
+
+        this.buttonUploadWavelet.addEventListener('click', () => {
+            url = 'uploadWavelet'
+            this.fileUpload.click();
+        })
+
+        this.buttonUploadLFP.addEventListener('click', () => {
+            url = 'uploadLFP'
+            this.fileUpload.click();
+        })
+        
+        this.fileUpload.addEventListener('change', async (event) => {
+            
+            this.loadingText.style.display = "block";  
+            
+            const file  = event.target.files[0];
+            
+            const args = this.wrap_Data()
+            args.file = file
+            args.url = url
+
+            const responseData = await dataLink.upload_Data(args);
+            const uploadData = dataLink.parse_Data(responseData)
+            console.log(uploadData)
+            this.set_GroupButton(uploadData);
+
+            event.target.value = '';
+
+            this.loadingText.style.display = "none";  
+        });
+    }
+    
 
     init_DataForm() {
 
-        function update_inputValues(inputs) {
+        const update_inputValues = (inputs) => {
             let allFilled = true;
-                
+            
             inputs.forEach(input => {
                 if (input.value === '') {
                     allFilled = false;
                 }
             });
-    
             return allFilled;    
         }
-
+        
         const inputs = document.querySelectorAll('.inputValues');
         const timeInputs = document.querySelectorAll('.timeInput');
-    
+        
         inputs.forEach(input => {
             input.addEventListener('input', () => {
                 const allFilled = update_inputValues(inputs);
-                this.uploadWaveletButton.disabled = !allFilled;
+                this.buttonUploadWavelet.disabled = !allFilled;
 
-                if (!this.uploadWaveletButton.disabled) {
-                    this.freqLow = parseFloat(document.getElementById("freqLow").value);
-                    this.freqHigh = parseFloat(document.getElementById("freqHigh").value);
+                if (!this.buttonUploadWavelet.disabled) {
+                    this.freqLow   = parseFloat(document.getElementById("freqLow").value);
+                    this.freqHigh  = parseFloat(document.getElementById("freqHigh").value);
                     this.timeStart = parseFloat(document.getElementById("timeStart").value);
-                    this.timeStop = parseFloat(document.getElementById("timeStop").value);
+                    this.timeStop  = parseFloat(document.getElementById("timeStop").value);
                 }    
             });
         });
@@ -84,9 +131,9 @@ class Upload{
         timeInputs.forEach(input => {
             input.addEventListener('input', () => {
                 const allFilled = update_inputValues(timeInputs);
-                this.uploadLFPbutton.disabled = !allFilled;
+                this.buttonUploadLFP.disabled = !allFilled;
 
-                if (!this.uploadLFPbutton.disabled) {
+                if (!this.buttonUploadLFP.disabled) {
                     this.timeStart = parseFloat(document.getElementById("timeStart").value);
                     this.timeStop = parseFloat(document.getElementById("timeStop").value);
                 }    
@@ -95,10 +142,10 @@ class Upload{
     }
 
 
-    init_NewGroupButton () {
+    init_ButtonNewGroup () {
         const button = document.createElement('button');
     
-        button.className = 'groupButton';
+        button.id = 'buttonNew';
         button.textContent = 'New Group';
         button.addEventListener('click', this.newGroup_Click);
  
@@ -110,10 +157,8 @@ class Upload{
     newGroup_Click = () => {
 
         this.groupNumber = 0;
-
         this.heatmapView.style.display = 'none'
-        document.getElementById('heatmapWrapper').style.display = 'none'
-        document.getElementById('container4').style.display = 'none'
+
         
         const buttons = document.querySelectorAll('.groupButton');
         buttons.forEach(btn => btn.classList.remove('active'));                
@@ -121,92 +166,7 @@ class Upload{
     }
 
 
-    set_WaveletButton(){
-
-        this.uploadWaveletButton.addEventListener('click', () => {
-            this.waveletFile.click();
-        });
-    
-        this.waveletFile.addEventListener('change', async (event) => {
-            
-            let file = event.target.files[0];
-            let formData = new FormData();
-            formData.append('file', file);
-            
-            formData.append('json_data', JSON.stringify({
-                timeStart: this.timeStart,
-                timeStop: this.timeStop,
-                freqLow: this.freqLow,
-                freqHigh: this.freqHigh
-            }));
-
-            this.loadingText.style.display = "block";  
-
-            await fetch(this.url + 'uploadWavelet', {
-                method: 'POST',
-                body: formData
-            })
-
-            .then(response => response.json())
-            
-            .then(data => {
-                this.set_GroupButton(data)
-            })
-            
-            .catch(error => {console.error('Error:', error)});
-
-            this.loadingText.style.display = "none";  
-
-            event.target.value = ''
-        });
-    }
-
-
-    set_LFPbutton(){
-        
-        this.uploadLFPbutton.addEventListener('click', () => {
-            this.LFPfile.click();
-        });
-
-        this.LFPfile.addEventListener('change', async (event) => {
-            
-            let file = event.target.files[0];
- 
-            let formData = new FormData();
-            formData.append('file', file);
-
-            formData.append('json_data', JSON.stringify({
-                timeStart: this.timeStart,
-                timeStop: this.timeStop,
-            }));
-
-            this.loadingText.style.display = "block";
-
-            await fetch(this.url + 'uploadLFP', {
-                method: 'POST',
-                body: formData
-            })
-
-            .then(response => response.json())
-
-            .then(data => {
-                this.set_GroupButton(data)
-            })
-            
-             .catch(error => {
-                console.error('Error:', error);
-            });
-
-            this.loadingText.style.display = "none";
-
-            event.target.value = ''
-        });
-    }
-    
-    
-    set_GroupButton(data){
-
-        this.heatmapView.style.display = 'block';
+    set_GroupButton(uploadData){
 
         let button
 
@@ -216,64 +176,29 @@ class Upload{
             button = this.groupButtonContainer.children[this.groupNumber-1]
         }
 
-        if (data.Wavelet){
-            console.log('added wavelet')
-            button.Wavelet = data.Wavelet;
-            button.WaveletMean = data.WaveletMean
+        if (uploadData.wavelets){            
+            button.wavelets = uploadData.wavelets
         }
 
-        if (data.LFP){
-            console.log('added LFP')
-            button.LFP = data.LFP;   
-            button.LFPMean = data.LFPMean
+        if (uploadData.LFPs){
+            button.LFPs = uploadData.LFPs
         }
         
-        button.meanButton = this.init_MeanButton()
-        
-        button.meanButton.addEventListener('click', () => {
-            button.meanButton.classList.toggle('active');
-            this.view_Trials(button)
-        })
-        
-        this.view_Trials(button);
+        viewer.view_Trials(button);
     }    
     
 
-    click_GroupButton = (button) => {
-
-            this.groupNumber = button.groupNumber
-            this.heatmapView.style.display = 'block'
-
-            const buttons = document.querySelectorAll('.groupButton');
-            buttons.forEach(btn => btn.classList.remove('active'));   
-
-            button.classList.add('active');
-                        
-            button.meanButton = this.init_MeanButton()
-        
-            button.meanButton.addEventListener('click', () => {
-                button.meanButton.classList.toggle('active');
-                this.view_Trials(button)
-            })
-
-            document.getElementById('heatmapWrapper').style.display = 'none'
-            document.getElementById('container4').style.display = 'none'
-                                        
-            this.view_Trials(button)
-    }
-    
     init_GroupButton(){
-        const container = this.groupButtonContainer
+        const container       = this.groupButtonContainer
         const containerLength = container.children.length
 
-        const button = document.createElement('button');
-        button.className = 'groupButton';
+        const button       = document.createElement('button');
+        button.className   = 'groupButton';
         button.groupNumber = container.children.length
-        this.groupNumber = button.groupNumber
         button.textContent = 'Group ' + button.groupNumber
+        this.groupNumber   = button.groupNumber
 
-        const buttons = document.querySelectorAll('.groupButton');
-        buttons.forEach(btn => btn.classList.remove('active'));  
+        container.lastElementChild.classList.remove('active');
 
         button.classList.add('active')
 
@@ -284,107 +209,31 @@ class Upload{
 
         return button
     }
-    
 
-    init_MeanButton(){
-        let container = document.getElementById('meanButtonContainer')
 
-        let meanButton 
+    click_GroupButton = async (button) => {
 
-        meanButton = document.getElementById('meanButton')
-
-        if (meanButton){
-            meanButton.remove()
-        }
-        
-        meanButton = document.createElement('button')
-        meanButton.id = 'meanButton'
-        meanButton.textContent = 'Average Trials'
-        
-        container.appendChild(meanButton)
-        return meanButton
-    }
-    
-
-    view_Trials (button){
-        let maxTrials
-        let splitWavelets
-
-        let sliderElement = new Slider()
-        let slider = sliderElement.init_Slider()
-        
-        if (button.LFP){
-
-            let initLFP
-
-            if (button.meanButton.classList.contains('active')) {
-                initLFP = button.LFPMean[0]
-            } else{
-                initLFP = button.LFP[0]
-            }
-
-            let LFPchart = new LFPplot()
-            LFPchart.initialize(initLFP)
-
-            document.getElementById('container4').style.display = 'flex'
-            console.log('LFP displayed')
-
-            maxTrials = Object.keys(button.LFP).length-1;
-        }
-
-        if (button.Wavelet){
-            let wavelets
-
-            if (button.meanButton.classList.contains('active')) {
-                wavelets = button.WaveletMean
-            } else {
-                wavelets = button.Wavelet;
-            }
-
-            let spectra = new SpectralPlot();
+            this.groupNumber = button.groupNumber
             
-            splitWavelets = spectra.init_Wavelet(wavelets[0]);
-
-            spectra.set_Wavelet(wavelets,splitWavelets);
-
-            document.getElementById('yAxisLabel').style.display = 'block';
-            document.getElementById('colorbarLabel').style.display = 'block';
-            document.getElementById('heatmapWrapper').style.display = 'block';
-            console.log('wavelet displayed');
-
-            maxTrials = Object.keys(wavelets).length-1;
-        }
-
-        if (button.LFP && !button.Wavelet){
-
-            document.getElementById('yAxisLabel').style.display = 'none'
-            document.getElementById('colorbarLabel').style.display = 'none'
-            document.getElementById('heatmapWrapper').style.display = 'none'
-        }
-
-        if (!button.meanButton.classList.contains('active')) {
-            sliderElement.set_Slider(button,splitWavelets)
-            slider.max = maxTrials;
-            slider.value = 0;
-
-            this.trialNumber.style.display = 'block'
-
-        } else {
-
-            let sliderExist
-            sliderExist = document.getElementById('slider')
-
-            if (sliderExist) {
-                sliderExist.remove()
+            const buttons = this.groupButtonContainer.querySelectorAll('*');
+            
+            let data
+            if (!this.buttonANOVA.classList.contains('active')){
+                buttons.forEach(button => {
+                    button.classList.remove('active');
+                });
+                data = button
+            } else if (this.buttonANOVA.classList.contains('active')){
+                data = await viewer.run_ANOVA(button,dataLink)
             }
-
-            this.trialNumber.style.display = 'none'
-            this.sliderLabel.style.display = 'none'
-        }
-
-        this.trialNumber.textContent = 1
+           
+            button.classList.add('active');
+                                                               
+            viewer.view_Trials(data)
     }
 }
 
+const dataLink = new LinkAPI()
+const viewer = new Elements()
 const dataUpload = new Upload();
 dataUpload.get_Heatmap()

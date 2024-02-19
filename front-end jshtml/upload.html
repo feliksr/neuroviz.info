@@ -10,31 +10,53 @@
 <body>
     <a href="home.html" id="homeButton">Return Home</a>
 
-    <input type="file" id="LFPfile" accept=".npy" style="display: none;" />
-    <input type="file" id="waveletFile" accept=".npy" style="display: none;" />
+    <input type="file" id="fileUpload" accept=".npy" style="display: none;" />
+
 
     <div id="heatmapView" style="display: none;"></div>
     
     <div id = 'uploadView'>
     
         <form id="dataForm">
-            <input type="text" id="freqLow" class= 'inputValues' placeholder="Set Min Frequency (Hz)">
-            <input type="text" id="freqHigh" class= 'inputValues' placeholder="Set Max Frequency  (&lt;200Hz)">
+            <input type="text" id="freqLow" 
+                class= 'inputValues' placeholder="Set Min Frequency (Hz)">
+            <input type="text" id="freqHigh" 
+                class= 'inputValues' placeholder="Set Max Frequency  (&lt;200Hz)">
             
-            <input type="text" id="timeStart" class= 'inputValues timeInput' placeholder="Set Time Start (sec)">
-            <input type="text" id="timeStop" class= 'inputValues timeInput' placeholder="Set Time End (sec)">
+            <input type="text" id="timeStart" 
+                class= 'inputValues timeInput' placeholder="Set Time Start (sec)">
+            <input type="text" id="timeStop" 
+                class= 'inputValues timeInput' placeholder="Set Time End (sec)">
         </form>
 
         <div id="uploadButtonsDiv">
-            <button id="uploadWaveletButton" class = 'uploadButtons' disabled>
-                Upload Wavelet
-                <span class="tooltipText">Frequency x Time x Trials for each (.npy) file/channel</span>
-            </button>
             
-            <button id="uploadLFPbutton" class = 'uploadButtons' disabled>
-                Upload LFP
-                <span class="tooltipText">Time x Trials for each (.npy) file/channel </span>
-            </button>
+            <div class = 'containerUploadButtons'>
+                
+                <button id="buttonUploadWavelet" class = 'uploadButtons' disabled>
+                    Upload Wavelet
+                    
+                    <span class="tooltipText" 
+                        style="right: 102%; top: -50%">
+                        Power (uV/Hz^2) for dimensions: 
+                        Frequency x Time x Trials for each (.npy) file/channel
+                    </span>
+                </button>
+            </div>
+            
+            <div class = 'containerUploadButtons'>
+                
+                <button id="buttonUploadLFP" class = 'uploadButtons' disabled>
+                    Upload LFP
+                    
+                    <span class="tooltipText" 
+                        style="left: 102%; top: -50%">
+                        Voltage (uV) for dimensions:     
+                        Time x Trials for each (.npy) file/channel
+                    </span>
+                </button>
+            </div>
+
         </div>  
     </div>
 
@@ -44,10 +66,15 @@
     
 </body>
 
+<!-- D3.JS CDN -->
 <script src= "https://d3js.org/d3.v5.min.js"></script>
 
-<script src= "upload.js"></script>
+<!-- static js files -->
+<script src= "LinkAPI.js"></script>
+<script src= "common.js"></script>
 <script src= "LFPspectra.js"></script>
 <script src= "heatmap.js"></script>
 <script src= "colorbar.js"></script>
 <script src= "slider.js"></script>
+<script src= "upload.js"></script>
+

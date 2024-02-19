@@ -30,8 +30,6 @@ class Colorbar {
             .attr("height", rectHeight)
             .attr("fill", d => d3.interpolateViridis(d / (this.numStops)))
             .attr("shape-rendering", "crispEdges")
-
-
     }
 
     set_ColorbarScale(){
@@ -68,13 +66,14 @@ class Colorbar {
             const slider = document.getElementById('slider')
             
             let trial
+
             if (slider){
                 trial = slider.value
             } else {
-                trial = 0
+                trial = 1
             }
                         
-            const waveletTrial = waveletTrials[trial]
+            const waveletTrial = waveletTrials.filter(d => d.trial === parseInt(trial))
             const splitWavelet = this.heatmap.split_Freq(waveletTrial)
             this.heatmap.draw_Heatmap(splitWavelet);            
             }

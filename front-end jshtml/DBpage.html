@@ -10,6 +10,13 @@
 <body>
     <a href="home.html" id="homeButton">Return Home</a>
     
+    <div id="channelButtonContainer">
+
+        <button id="prevChan" class="button">Previous Channel</button>
+        <select id="chanSelect"></select>
+        <button id="nextChan" class="button">Next Channel</button>
+    </div>
+    
     <div id="heatmapView" style="display: none;"></div>
 
     <h1 id= "loadingText" style = 'display:none;'>Loading...</h1>
@@ -18,11 +25,14 @@
     
 </body>
 
+<!-- D3.JS CDN -->
 <script src= "https://d3js.org/d3.v5.min.js"></script>
 
-<script src= "DBpage.js"></script>
-<script src= "DBLink.js"></script>
+<!-- static js files -->
+<script src= "LinkAPI.js"></script>
+<script src= "common.js"></script>
 <script src= "LFPspectra.js"></script>
 <script src= "heatmap.js"></script>
 <script src= "colorbar.js"></script>
 <script src= "slider.js"></script>
+<script src= "DBpage.js"></script>

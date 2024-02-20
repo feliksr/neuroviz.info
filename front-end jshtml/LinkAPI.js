@@ -174,10 +174,11 @@ class LinkAPI{
                 "freq"  : responseData.wavelets_freq,
             }
             wavelets.trials = wavelets.data.length
-
-            wavelets.d3 = this.convert_WaveletsToObjects(
-                wavelets,mean=false) 
             
+            wavelets.d3 = {}
+            wavelets.d3.data = this.convert_WaveletsToObjects(
+                wavelets,mean=false) 
+
             if (wavelets.mean !== null){
                 wavelets.d3.mean = this.convert_WaveletsToObjects(
                     wavelets,mean=true)
@@ -194,8 +195,9 @@ class LinkAPI{
                 "time"   :  responseData.LFPs_time,
             }
             LFPs.trials = LFPs.data.length
-            console.log(LFPs.trials)
-            LFPs.d3 = this.convert_LFPsToObjs(LFPs, mean=false)
+            
+            LFPs.d3 = {}
+            LFPs.d3.data = this.convert_LFPsToObjs(LFPs, mean=false)
             
             if (LFPs.mean !== null){
                 LFPs.d3.mean = this.convert_LFPsToObjs(

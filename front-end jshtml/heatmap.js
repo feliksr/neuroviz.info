@@ -60,6 +60,7 @@ class Heatmap {
                     .tickFormat(''))  
                 .attr("transform", `translate(0, ${this.heightSVG})`)
                 
+                
             xAxis.append("text")
                 .attr("class", "dragColorbarLabel")
                 .attr("x", this.width - 10)  
@@ -84,38 +85,49 @@ class Heatmap {
     }
         
     draw_Heatmap(filteredData) {
+        const button = document.getElementById('buttonBaseline')
+        let adjustedPower
+        
+        if(button.classList.contains('active')){
+            adjustedPower = true
+        } else {
+            adjustedPower = false
+        }
+        
         this.svg.selectAll("rect")
             .data(filteredData)
-            .attr("fill", d => this.colorScale(d.power));
+            .attr("fill", d => this.colorScale(adjustedPower ? (d.power*d.frequency) : d.power))
     }
 
     set_ColorScale(filteredData){
-        // if (this.ANOVA ){
-        //      heatmap.ANOVA = true
-        //      heatmap.maxPower = this.allButtons.pVal.value
-        //      heatmap.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([heatmap.maxPower,0])
+        // if (buttonANOVA.contains('active)){
+        //      this.maxPower = buttonpVal.value
+        //      this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([heatmap.maxPower,0])
         //      document.getElementById('colorbarLabel').textContent = 'p-Value'
-        //  }
-        //  else {
-            //  heatmap.ANOVA = false
+        //  } else {
              this.maxPower = 3 * d3.deviation(this.get_PowerValue(filteredData))
              this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, this.maxPower])
              document.getElementById('colorbarLabel').innerHTML = 'Power  (uV / Hz<sup>2</sup>)'
     }
 
     get_PowerValue(filteredData) {
+        
+        let adjustedPower
+        const button = document.getElementById('buttonBaseline')
+        
+        if(button.classList.contains('active')){
+            adjustedPower = true
+        } else {
+            adjustedPower = false
+        }
+
         let powerValues = [];
         filteredData.forEach(array => {
-            // const trialButtonId = `trialButton-${this.group}-${trialNum}`;
-            // const isExcluded = document.getElementById(trialButtonId) !== null;
-    
-            // if (!isExcluded) {
-                     powerValues.push(array.power);
-                
-                });
-            // 
+            powerValues.push(
+                adjustedPower ? (array.power*array.frequency) : array.power);
+        });
 
         return powerValues;
     }
-   
+
 }

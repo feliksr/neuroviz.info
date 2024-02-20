@@ -104,13 +104,6 @@ svg .LFP-label {
     align-items: center; 
 } */
 
-/* #textContainer {
-    flex-grow: 0; 
-    flex-shrink: 0; 
-    width: 500px; 
-    overflow: hidden; 
-    text-align: left;
-} */
 
 #sliderContainer{
     width: 500px;
@@ -165,12 +158,12 @@ svg .LFP-label {
 }
 
 .groupButton.active, #buttonANOVA.active, #meanButton.active, 
-#excludeTrialButton.active, #allANOVA.active, #buttonNew.active{
+#excludeTrialButton.active, #allANOVA.active, #buttonNew.active, #buttonBaseline.active{
     background-color: #555;
     color: white;
 }
 
-#meanButton, #buttonANOVA, #excludeTrialButton, #allANOVA {
+#meanButton, #buttonANOVA, #excludeTrialButton, #buttonBaseline, #allANOVA {
     padding: 5px 10px;
     font-size: 1.1em;
     border-radius: 5px; 

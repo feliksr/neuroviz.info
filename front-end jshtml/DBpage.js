@@ -37,6 +37,7 @@ class DBpage{
             this.set_ChannelButtons()
             viewer.init_ButtonMean()
             viewer.init_ButtonANOVA(dataLink)
+            viewer.set_ButtonBaseline()
             
             // this.set_excludeTrialButton()
             this.channelButtonContainer.style.display = 'none'

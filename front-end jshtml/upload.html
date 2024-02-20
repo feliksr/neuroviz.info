@@ -12,7 +12,6 @@
 
     <input type="file" id="fileUpload" accept=".npy" style="display: none;" />
 
-
     <div id="heatmapView" style="display: none;"></div>
     
     <div id = 'uploadView'>
@@ -38,7 +37,7 @@
                     
                     <span class="tooltipText" 
                         style="right: 102%; top: -50%">
-                        Power (uV/Hz^2) for dimensions: 
+                        Power (uV/Hz^2) for dimensions: <br> 
                         Frequency x Time x Trials for each (.npy) file/channel
                     </span>
                 </button>
@@ -51,7 +50,7 @@
                     
                     <span class="tooltipText" 
                         style="left: 102%; top: -50%">
-                        Voltage (uV) for dimensions:     
+                        Voltage (uV) for dimensions: <br>    
                         Time x Trials for each (.npy) file/channel
                     </span>
                 </button>
@@ -72,8 +71,9 @@
 <!-- static js files -->
 <script src= "LinkAPI.js"></script>
 <script src= "common.js"></script>
-<script src= "LFPspectra.js"></script>
 <script src= "heatmap.js"></script>
+
+<script src= "LFPspectra.js"></script>
 <script src= "colorbar.js"></script>
 <script src= "slider.js"></script>
 <script src= "upload.js"></script>

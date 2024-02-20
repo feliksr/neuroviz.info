@@ -5,8 +5,8 @@ class Upload{
     get_Heatmap(){
         const ids = [
             'excludeTrialButton', 'loadingText',, 'meanButton', 'fileUpload',
-            'xAxisLabel', 'buttonANOVA', 'groupButtonContainer', 
-            'heatmapView', 'buttonUploadLFP','buttonUploadWavelet' 
+            'xAxisLabel', 'buttonANOVA', 'groupButtonContainer', 'buttonBaseline',
+            'heatmapView', 'buttonUploadLFP','buttonUploadWavelet', 'dataForm'
         ];
 
         fetch('heatmap.html')
@@ -38,7 +38,8 @@ class Upload{
 
         viewer.init_ButtonMean()
         viewer.init_ButtonANOVA(dataLink)
-
+        viewer.set_ButtonBaseline()
+        
     }
     
     wrap_Data() {
@@ -49,7 +50,7 @@ class Upload{
         } else {
             groupNumber = this.groupNumber
         }
-        
+
         const args = {}
         args.formData = {
             timeStart   : this.timeStart,
@@ -77,24 +78,30 @@ class Upload{
         })
         
         this.fileUpload.addEventListener('change', async (event) => {
-            
             this.loadingText.style.display = "block";  
+            this.dataForm.style.display = 'none'    
             
-            const file  = event.target.files[0];
+                const file  = event.target.files[0];
+                
+                const MAX_SIZE = 2 * 1024 * 1024 //  2MB limit
+
+                if (file.size > MAX_SIZE) {
+                    alert('File is too large (>2MB). Reduce trials or frequency/time bins. ');
+                
+                } else {
+                    const args = this.wrap_Data()
+                    args.file = file
+                    args.url = url
+
+                    const responseData = await dataLink.upload_Data(args);
+                    const uploadData = dataLink.parse_Data(responseData);
+                    this.set_GroupButton(uploadData);
+                }
             
-            const args = this.wrap_Data()
-            args.file = file
-            args.url = url
-
-            const responseData = await dataLink.upload_Data(args);
-            const uploadData = dataLink.parse_Data(responseData)
-            console.log(uploadData)
-            this.set_GroupButton(uploadData);
-
-            event.target.value = '';
-
             this.loadingText.style.display = "none";  
-        });
+            
+            event.target.value = ''; // reset the file
+        })
     }
     
 

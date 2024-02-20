@@ -54,7 +54,7 @@ class Elements{
             let initLFP
 
             if (!buttonMean.classList.contains('active')){
-                initLFP = button.LFPs.d3.filter(d => d.trial === 1);
+                initLFP = button.LFPs.d3.data.filter(d => d.trial === 1);
             } else {
                 initLFP = button.LFPs.d3.mean
             }
@@ -67,14 +67,14 @@ class Elements{
         }
 
         if (button.wavelets){
+                       
             let initWavelet
-            
             let spectra = new SpectralPlot();
 
             if (!buttonMean.classList.contains('active')){
-                initWavelet = button.wavelets.d3.filter(d => d.trial === 1);
+                initWavelet = button.wavelets.d3.data.filter(d => d.trial === 1);
                 splitWavelets = spectra.init_Wavelet(initWavelet);
-                spectra.set_Wavelet(button.wavelets.d3,splitWavelets);
+                spectra.set_Wavelet(button.wavelets.d3.data,splitWavelets);
 
             } else {
 
@@ -84,6 +84,12 @@ class Elements{
             }
             containers.style.display = 'flex'
             console.log('wavelet displayed');
+
+            // if(!button.LFPs){
+            //     const container = d3.select('#container3 svg')
+            //     console.log(d3.select('#container3'))
+            //     container.call(d3.axisBottom(this.xScale).ticks(5))
+            // }
         }
 
         this.set_Slider(button,splitWavelets)
@@ -141,6 +147,21 @@ class Elements{
             }
 
             dataLink.delete_GroupNumbers()
+        })
+    }
+
+    set_ButtonBaseline(){
+        const buttonANOVA = document.getElementById('buttonANOVA')
+        const buttonBaseline = document.getElementById('buttonBaseline')
+
+        buttonBaseline.addEventListener('click', () =>{
+            buttonBaseline.classList.toggle('active')
+            buttonANOVA.disabled = buttonBaseline.classList.contains('active')
+            document.querySelectorAll('.groupButton').forEach(button => {
+                if(button.classList.contains('active')){
+                    button.click()
+                }
+            })
         })
     }
 }

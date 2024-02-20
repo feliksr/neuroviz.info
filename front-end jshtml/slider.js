@@ -35,14 +35,14 @@ class Slider {
             if (button.wavelets){
 
                 splitWavelets.forEach(heatmap => {
-                    const splitWavelet = heatmap.split_Freq(button.wavelets.d3.filter(d => d.trial === parseInt(trial)))
+                    const splitWavelet = heatmap.split_Freq(button.wavelets.d3.data.filter(d => d.trial === parseInt(trial)))
                     heatmap.draw_Heatmap(splitWavelet)
                 });
             }
 
             if (button.LFPs){
                 let LFP = new LFPplot();
-                LFP.initialize(button.LFPs.d3.filter(d => d.trial === parseInt(trial)))
+                LFP.initialize(button.LFPs.d3.data.filter(d => d.trial === parseInt(trial)))
             }
         })
 

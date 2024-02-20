@@ -73,7 +73,6 @@ class LFPplot {
         const svg = d3.select(this.container).append("svg")
             .attr("width", this.width + this.margin.left + this.margin.right)
             .attr("height", this.height + this.margin.bottom)
-
    
         const xScale = d3.scaleLinear()
             .rangeRound([0, this.width])

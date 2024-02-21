@@ -3,8 +3,8 @@
 class LinkAPI{
     constructor() {
 
-        this.url = 'https://neuroviz.info/api/'
-        // this.url = 'http://localhost:5000/api/'
+        // this.url = 'https://neuroviz.info/api/'
+        this.url = 'http://localhost:5000/api/'
 
         this.loadingText  = document.getElementById('loadingText')
 

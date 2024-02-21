@@ -135,46 +135,43 @@ def run_ANOVA():
     groupNumbers[groupNumber] = groupNumber
     cache.set('groupNumbers', groupNumbers, timeout = 3600)
 
-    if wavelets and sum(wavelet is not None for wavelet in wavelets) >1 :
+    if wavelets and sum(wavelets[i] is not None for i in groupNumbers if i is not None) > 1:
+        
         wavelets_arrays = [wavelets[i] for i in groupNumbers if i is not None and wavelets[i] is not None]
         wavelets_shapeWavelet = wavelets_arrays[0].shape[1:]
         wavelets_numberOf = len(wavelets_arrays)
 
-        if wavelets_numberOf >1 :
-            
-            wavelets_pVals = np.empty(wavelets_shapeWavelet)
-            for row in range(wavelets_shapeWavelet[0]):
-                for column in range(wavelets_shapeWavelet[1]):
-                    values = [wavelet[:, row, column] for wavelet in wavelets_arrays]
-                    _, pVal = stats.f_oneway(*values)
-                    
-                    if math.isnan(pVal):
-                        wavelets_pVals[row, column] = wavelets_numberOf
+        wavelets_pVals = np.empty(wavelets_shapeWavelet)
+        for row in range(wavelets_shapeWavelet[0]):
+            for column in range(wavelets_shapeWavelet[1]):
+                values = [wavelet[:, row, column] for wavelet in wavelets_arrays]
+                _, pVal = stats.f_oneway(*values)
+                
+                if math.isnan(pVal):
+                    wavelets_pVals[row, column] = wavelets_numberOf
 
-                    else:
-                        wavelets_pVals[row, column] = pVal * wavelets_numberOf
+                else:
+                    wavelets_pVals[row, column] = pVal * wavelets_numberOf
 
-            wavelets_ANOVA = np.expand_dims(wavelets_pVals,axis=0)
+        wavelets_ANOVA = np.expand_dims(wavelets_pVals,axis=0)
       
-    if LFPs and sum(LFP is not None for LFP in LFPs) >1 :
+    if LFPs and sum(LFPs[i] is not None for i in groupNumbers if i is not None) > 1:
 
         LFPs_arrays = [LFPs[i] for i in groupNumbers if i is not None and LFPs[i] is not None]
         LFPs_shapeLFP = LFPs_arrays[0].shape[1]
         LFPs_numberOf = len(LFPs_arrays)
         
-        if LFPs_numberOf > 1 :
+        LFPs_pVals = np.empty(LFPs_shapeLFP)
+        for row in range(LFPs_shapeLFP):
+            values = [LFP[:,row] for LFP in LFPs_arrays]
+            _, pVal = stats.f_oneway(*values)
 
-            LFPs_pVals = np.empty(LFPs_shapeLFP)
-            for row in range(LFPs_shapeLFP):
-                values = [LFP[:,row] for LFP in LFPs_arrays]
-                _, pVal = stats.f_oneway(*values)
-
-                if math.isnan(pVal):
-                    LFPs_pVals[row] = LFPs_numberOf
-                else:
-                    LFPs_pVals[row] = pVal * LFPs_numberOf
-            
-            LFPs_ANOVA = np.expand_dims(LFPs_pVals,axis=0)  
+            if math.isnan(pVal):
+                LFPs_pVals[row] = LFPs_numberOf
+            else:
+                LFPs_pVals[row] = pVal * LFPs_numberOf
+        
+        LFPs_ANOVA = np.expand_dims(LFPs_pVals,axis=0)  
      
     if wavelets_ANOVA is not None:
         data_ANOVA.update({

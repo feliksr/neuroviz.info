@@ -129,14 +129,17 @@ class Elements{
 
         buttonANOVA.addEventListener('click', ()  => {
             buttonANOVA.classList.toggle('active')
+            
 
             document.getElementById('heatmapView').style.display = 'none'
             const buttonMean = document.getElementById('meanButton')
             const buttonNew = document.getElementById('buttonNew')
             const buttons   = document.querySelectorAll('.groupButton');
+            const buttonBase = document.getElementById('buttonBaseline')
 
             buttonMean.classList.remove('active')
-            buttonMean.visibility = !buttonANOVA.classList.contains('active')
+            buttonMean.disabled = buttonANOVA.classList.contains('active')
+            buttonBase.disabled = buttonANOVA.classList.contains('active')
 
             buttons.forEach(button =>
                 button.classList.remove('active')

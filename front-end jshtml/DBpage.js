@@ -17,7 +17,7 @@ class DBpage{
 
         const ids = [
             'nextChan', 'prevChan', 'chanSelect', 'channelButtonContainer',
-            'trialNumber', 'excludeTrialButton', 'meanButton', 'buttonANOVA', 
+            'excludeTrialButton', 'buttonANOVA', 
             'groupButtonContainer', 'xAxisLabel', 'heatmapView'
         ];
 
@@ -40,7 +40,7 @@ class DBpage{
             viewer.set_ButtonBaseline()
             
             // this.set_excludeTrialButton()
-            this.xAxisLabel.textContent = 'Time from button-press response (sec)'
+            xAxisLabel.textContent = 'Time from button-press response (sec)'
         })
 
         .catch(error => console.error('Error:', error));
@@ -83,7 +83,7 @@ class DBpage{
             await this.set_GroupButtonData(groupButton)
             
             let data
-            if (!this.buttonANOVA.classList.contains('active')){
+            if (!buttonANOVA.classList.contains('active')){
                 document.querySelectorAll('.groupButton')
                 
                 .forEach(button => 
@@ -92,7 +92,7 @@ class DBpage{
                 
                 data = groupButton
 
-            } else if(this.buttonANOVA.classList.contains('active')){
+            } else if(buttonANOVA.classList.contains('active')){
                 data = await viewer.run_ANOVA(groupButton,dataLink)
             }
             
@@ -129,28 +129,25 @@ class DBpage{
 
     set_ChannelButtons(){
        
-        this.prevChan.addEventListener('click', () => {
+        prevChan.addEventListener('click', () => {
             if (chanSelect.selectedIndex > 0) {
                 chanSelect.selectedIndex--;  
+                chanSelect.dispatchEvent(new Event('change'));
             }
-
-            chanSelect.dispatchEvent(new Event('change'));
         })
         
-        this.nextChan.addEventListener('click', () => {
+        nextChan.addEventListener('click', () => {
             if (chanSelect.selectedIndex < chanSelect.options.length - 1) {
-                chanSelect.selectedIndex++;  
-            }
-
-            chanSelect.dispatchEvent(new Event('change'));
+                chanSelect.selectedIndex++; 
+                chanSelect.dispatchEvent(new Event('change'));
+            }            
         })
     }
 
 
     set_ChannelSelect(){
    
-        const chanSelect = document.getElementById('chanSelect');
-
+        
         this.chanNumbers.forEach((number, index) => {
             const channel = document.createElement('option');
             channel.innerHTML = 'Channel #' + number + '&nbsp;&nbsp;&nbsp;&nbsp;' + this.chanLabels[index];
@@ -159,49 +156,13 @@ class DBpage{
         });
 
         chanSelect.addEventListener('change', () => {
+            dataLink.clear_Cache()
             this.channelIdx = chanSelect.selectedIndex
             this.init_GroupButtons();
         });
 
-        this.channelButtonContainer.style.display = 'flex';
+        channelButtonContainer.style.display = 'flex';
     }
-
-       
-    // set_ExcludeTrialButton(){
-
-    //     this.excludeTrialButton.addEventListener('click', () => {
-    //         const trialButtonId = `trialButton-${this.page.group}-${this.page.trial}`;
-    //         const trialButton = document.getElementById(trialButtonId);
-
-        
-    //         if (trialButton) {
-    //             this.excludeTrialButton.classList.add('active');
-    //         } else {
-    //             this.excludeTrialButton.classList.remove('active');
-    //         }
-        
-
-    //         if (trialButton) {
-    //             this.excludedTrialsContainer[this.page.group].removeChild(trialButton);
-    //         } else {
-
-    //             const button = document.createElement('button');
-    //             button.textContent = `Trial ${this.page.trial}`;
-    //             button.id = trialButtonId;
-    //             this.excludedTrialsContainer[this.page.group].appendChild(button);
-        
-    //             button.addEventListener('click', () => {
-
-    //                 this.trialSlider.value = parseInt(trialButtonId.split('-')[2]);
-    //                 this.trialSlider.dispatchEvent(new Event('input'));
-
-    //             });
-    //         }
-            
-    //         this.excludeTrialButton.classList.toggle('active');
-    //         this.page.get_Data();
-    //     }); 
-    // }
 
 }
 const dataLink = new LinkAPI()

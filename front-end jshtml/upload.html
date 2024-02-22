@@ -12,7 +12,7 @@
 
     <input type="file" id="fileUpload" accept=".npy" style="display: none;" />
 
-    <div id="heatmapView" style="display: none;"></div>
+    <div id="heatmapView" style= "display: none;"></div>
     
     <div id = 'uploadView'>
     
@@ -30,30 +30,30 @@
 
         <div id="uploadButtonsDiv">
             
-            <div class = 'containerUploadButtons'>
+            <div class = 'divUploadButtons'>
                 
                 <button id="buttonUploadWavelet" class = 'uploadButtons' disabled>
                     Upload Wavelet
-                    
-                    <span class="tooltipText" 
-                        style="right: 102%; top: -50%">
-                        Power (uV/Hz^2) for dimensions: <br> 
-                        Frequency x Time x Trials for each (.npy) file/channel
-                    </span>
                 </button>
+                
+                <span class="tooltipText" style = "transform: translate(-102%, -85%);">
+                    Power (uV/Hz^2) for dimensions: <br> 
+                    Frequency x Time x Trials for each (.npy) file/channel
+                </span>
+
             </div>
             
-            <div class = 'containerUploadButtons'>
+            <div class = 'divUploadButtons'>
                 
                 <button id="buttonUploadLFP" class = 'uploadButtons' disabled>
                     Upload LFP
-                    
-                    <span class="tooltipText" 
-                        style="left: 102%; top: -50%">
-                        Voltage (uV) for dimensions: <br>    
-                        Time x Trials for each (.npy) file/channel
-                    </span>
                 </button>
+                    
+                <span class="tooltipText" style = "transform: translate(82%, -85%);">
+                    Voltage (uV) for dimensions: <br>    
+                    Time x Trials for each (.npy) file/channel
+                </span>
+                
             </div>
 
         </div>  

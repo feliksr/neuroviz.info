@@ -16,33 +16,23 @@
 
 <div id ='xAxisLabel'></div>
 
-<div id="controls">
+<div id="controls" style = "visibility: visible;">
         
-        <div id="sliderDiv">
+    <div id = "excludedDiv">
+        <!-- <button id = buttonExclude>Exclude Trial</button> -->
+    </div>
 
-            <!-- <button id = "buttonExcludeTrial">Exclude Trial from Channels</button> --> 
-            <div id = "sliderElements">
-                <label id = sliderLabel>Trial</label>
-                <div id = sliderContainer></div>
-                <span id="sliderNumber"></span>
-            </div>
-            <button id = 'meanButton'>Average Trials</button>
-            <button id="buttonANOVA">ANOVA</button>
-            <button id = "buttonBaseline"> 1/f correction</button>
-
-        </div>
-
-        
-        <div id="pValDiv" style="display: none;">
-
-            <button id="buttonHiddenANOVA.active">ANOVA</button>
-            <span id="pValId"> pValue = </span>
-            <input type="text" id= "pVal" value= "0.10" style="width: 75px; height: 24px;">
-            <!-- <button id = 'allANOVA' style = 'margin-left : 100px'>All Channels</button> -->
-            <!-- <span id="warning">Warning! Loading Time 15 minutes</span> -->
-
-        </div>
-
+    <div id = "sliderElements">
+        <label id = sliderLabel>Trial</label>
+        <div id = sliderContainer></div>
+        <span id="sliderNumber"></span>
+    </div>
+    
+    <div id = computeButtonsDiv>
+    <button id = 'buttonMean'>Average Trials</button>
+    <button id="buttonANOVA">ANOVA</button>
+    <button id = "buttonBaseline"> 1/f correction</button>
+    </div>        
 
 </div>
 

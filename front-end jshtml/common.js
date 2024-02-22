@@ -1,12 +1,25 @@
 //common.js
 
 class Elements{
-    
+
+    constructor(){
+        this.initialize()
+    }
+
+    initialize(){
+        const ids = [
+            'buttonANOVA', 'sliderElements', 'buttonMean' , 
+            'buttonNew', 'buttonBaseline', 'heatmapView',
+            'containers', 'container4'
+        ]
+
+        ids.forEach(id => {
+            this[id] = document.getElementById(id)
+        });
+    }
+
     set_Slider(button,splitWavelets){
-        const buttonMean  = document.getElementById('meanButton')
-        const buttonANOVA = document.getElementById('buttonANOVA')
-        const sliderElements = document.getElementById('sliderElements')
-        
+
         if (!buttonMean.classList.contains('active') && !buttonANOVA.classList.contains('active')) {
             let sliderElement = new Slider()
             let slider        = sliderElement.init_Slider()
@@ -33,28 +46,24 @@ class Elements{
     }   
 
     view_Trials (button){
-
-        const containers  = document.getElementById('containers')
-        const container4  = document.getElementById('container4')
-        const heatmapView = document.getElementById('heatmapView')
-        const buttonMean  = document.getElementById('meanButton')
-
-        containers.style.display  = 'none'
-        container4.style.display  = 'none'
+        heatmapView.style.display = 'block'
         
         if (!button.LFPs && !button.wavelets){
-            heatmapView.style.display = 'none';
+            heatmapView.style.visibility = 'hidden';
         } else{
-            heatmapView.style.display = 'block';
+            heatmapView.style.visibility = 'visible';
         }
-            
+        containers.style.visibility  = 'hidden'
+        container4.style.visibility  = 'hidden'
+        
+                            
         let splitWavelets
 
         if (button.LFPs){
             let initLFP
 
             if (!buttonMean.classList.contains('active')){
-                initLFP = button.LFPs.d3.data.filter(d => d.trial === 1);
+                initLFP = button.LFPs.d3.data.filter(d => d.trial === 1)
             } else {
                 initLFP = button.LFPs.d3.mean
             }
@@ -62,7 +71,7 @@ class Elements{
             const LFPchart = new LFPplot()
             LFPchart.initialize(initLFP)
 
-            container4.style.display = 'flex'
+            container4.style.visibility = 'visible'
             console.log('LFP displayed')
         }
 
@@ -72,18 +81,18 @@ class Elements{
             let spectra = new SpectralPlot();
 
             if (!buttonMean.classList.contains('active')){
-                initWavelet = button.wavelets.d3.data.filter(d => d.trial === 1);
-                splitWavelets = spectra.init_Wavelet(initWavelet);
-                spectra.set_Wavelet(button.wavelets.d3.data,splitWavelets);
+                initWavelet = button.wavelets.d3.data.filter(d => d.trial === 1)
+                splitWavelets = spectra.init_Wavelet(initWavelet)
+                spectra.set_Wavelet(button.wavelets.d3.data,splitWavelets)
 
             } else {
 
-                initWavelet = button.wavelets.d3.mean;
-                splitWavelets = spectra.init_Wavelet(initWavelet);
-                spectra.set_Wavelet(initWavelet,splitWavelets);
+                initWavelet = button.wavelets.d3.mean
+                splitWavelets = spectra.init_Wavelet(initWavelet)
+                spectra.set_Wavelet(initWavelet,splitWavelets)
             }
-            containers.style.display = 'flex'
-            console.log('wavelet displayed');
+            containers.style.visibility = 'visible'
+            console.log('wavelet displayed')
 
             // if(!button.LFPs){
             //     const container = d3.select('#container3 svg')
@@ -97,10 +106,9 @@ class Elements{
 
 
     init_ButtonMean(){
-        const meanButton = document.getElementById('meanButton')    
         
-        meanButton.addEventListener('click', () => {
-            meanButton.classList.toggle('active')
+        buttonMean.addEventListener('click', () => {
+            buttonMean.classList.toggle('active')
 
             document.querySelectorAll('.groupButton').forEach(button => {
                 if (button.classList.contains('active')){
@@ -130,23 +138,22 @@ class Elements{
         buttonANOVA.addEventListener('click', ()  => {
             buttonANOVA.classList.toggle('active')
             
-
-            document.getElementById('heatmapView').style.display = 'none'
-            const buttonMean = document.getElementById('meanButton')
-            const buttonNew = document.getElementById('buttonNew')
-            const buttons   = document.querySelectorAll('.groupButton');
-            const buttonBase = document.getElementById('buttonBaseline')
-
+            heatmapView.style.visibility = 'hidden'
+            containers.style.visibility  = 'hidden'
+            container4.style.visibility  = 'hidden'
+            sliderElements.style.visibility = 'hidden'
+            
             buttonMean.classList.remove('active')
             buttonMean.disabled = buttonANOVA.classList.contains('active')
-            buttonBase.disabled = buttonANOVA.classList.contains('active')
-
-            buttons.forEach(button =>
-                button.classList.remove('active')
+            buttonBaseline.disabled = buttonANOVA.classList.contains('active')
+            
+            document.querySelectorAll('.groupButton')
+                .forEach(button =>
+                    button.classList.remove('active')
             )
 
-            if (buttonNew){
-                buttonNew.disabled = buttonANOVA.classList.contains('active')
+            if (typeof buttonNew !== 'undefined' && buttonNew) {
+                buttonNew.disabled = buttonANOVA.classList.contains('active');
             }
 
             dataLink.delete_GroupNumbers()
@@ -154,8 +161,6 @@ class Elements{
     }
 
     set_ButtonBaseline(){
-        const buttonANOVA = document.getElementById('buttonANOVA')
-        const buttonBaseline = document.getElementById('buttonBaseline')
 
         buttonBaseline.addEventListener('click', () =>{
             buttonBaseline.classList.toggle('active')

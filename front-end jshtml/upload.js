@@ -4,9 +4,9 @@ class Upload{
 
     get_Heatmap(){
         const ids = [
-            'excludeTrialButton', 'loadingText',, 'meanButton', 'fileUpload',
-            'xAxisLabel', 'buttonANOVA', 'groupButtonContainer', 'buttonBaseline',
-            'heatmapView', 'buttonUploadLFP','buttonUploadWavelet', 'dataForm'
+            'loadingText',, 'fileUpload', 'xAxisLabel', 'buttonANOVA',
+            'groupButtonContainer', 'heatmapView', 'buttonUploadLFP',
+            'buttonUploadWavelet', 'dataForm'
         ];
 
         fetch('heatmap.html')
@@ -30,7 +30,7 @@ class Upload{
         dataLink.clear_Cache()
 
         this.groupNumber = 0;
-        this.xAxisLabel.textContent = 'Time (sec)'
+        xAxisLabel.textContent = 'Time (sec)'
         
         this.init_ButtonNewGroup()
         this.init_DataForm()
@@ -39,14 +39,14 @@ class Upload{
         viewer.init_ButtonMean()
         viewer.init_ButtonANOVA(dataLink)
         viewer.set_ButtonBaseline()
-        
+
     }
     
     wrap_Data() {
         let groupNumber
 
         if (this.groupNumber === 0){
-            groupNumber = this.groupButtonContainer.children.length
+            groupNumber = groupButtonContainer.children.length
         } else {
             groupNumber = this.groupNumber
         }
@@ -67,19 +67,19 @@ class Upload{
         
         let url 
 
-        this.buttonUploadWavelet.addEventListener('click', () => {
+        buttonUploadWavelet.addEventListener('click', () => {
             url = 'uploadWavelet'
             this.fileUpload.click();
         })
 
-        this.buttonUploadLFP.addEventListener('click', () => {
+        buttonUploadLFP.addEventListener('click', () => {
             url = 'uploadLFP'
             this.fileUpload.click();
         })
         
         this.fileUpload.addEventListener('change', async (event) => {
-            this.loadingText.style.display = "block";  
-            this.dataForm.style.display = 'none'    
+            loadingText.style.display = "block";  
+            dataForm.style.display = 'none'    
             
                 const file  = event.target.files[0];
                 
@@ -98,7 +98,7 @@ class Upload{
                     this.set_GroupButton(uploadData);
                 }
             
-            this.loadingText.style.display = "none";  
+            loadingText.style.display = "none";  
             
             event.target.value = ''; // reset the file
         })
@@ -124,9 +124,9 @@ class Upload{
         inputs.forEach(input => {
             input.addEventListener('input', () => {
                 const allFilled = update_inputValues(inputs);
-                this.buttonUploadWavelet.disabled = !allFilled;
+                buttonUploadWavelet.disabled = !allFilled;
 
-                if (!this.buttonUploadWavelet.disabled) {
+                if (!buttonUploadWavelet.disabled) {
                     this.freqLow   = parseFloat(document.getElementById("freqLow").value);
                     this.freqHigh  = parseFloat(document.getElementById("freqHigh").value);
                     this.timeStart = parseFloat(document.getElementById("timeStart").value);
@@ -138,9 +138,9 @@ class Upload{
         timeInputs.forEach(input => {
             input.addEventListener('input', () => {
                 const allFilled = update_inputValues(timeInputs);
-                this.buttonUploadLFP.disabled = !allFilled;
+                buttonUploadLFP.disabled = !allFilled;
 
-                if (!this.buttonUploadLFP.disabled) {
+                if (!buttonUploadLFP.disabled) {
                     this.timeStart = parseFloat(document.getElementById("timeStart").value);
                     this.timeStop = parseFloat(document.getElementById("timeStop").value);
                 }    
@@ -156,20 +156,20 @@ class Upload{
         button.textContent = 'New Group';
         button.addEventListener('click', this.newGroup_Click);
  
-        this.groupButtonContainer.appendChild(button)
-        this.groupButtonContainer.style.display = 'none'
+        groupButtonContainer.appendChild(button)
+        groupButtonContainer.style.display = 'none'
     }
 
     
     newGroup_Click = () => {
 
         this.groupNumber = 0;
-        this.heatmapView.style.display = 'none'
+        heatmapView.style.display = 'none'
 
         
         const buttons = document.querySelectorAll('.groupButton');
         buttons.forEach(btn => btn.classList.remove('active'));                
-        this.groupButtonContainer.lastElementChild.classList.add('active');
+        groupButtonContainer.lastElementChild.classList.add('active');
     }
 
 
@@ -180,7 +180,7 @@ class Upload{
         if (this.groupNumber == 0){
             button = this.init_GroupButton()
         }else{
-            button = this.groupButtonContainer.children[this.groupNumber-1]
+            button = groupButtonContainer.children[this.groupNumber-1]
         }
 
         if (uploadData.wavelets){            
@@ -196,7 +196,7 @@ class Upload{
     
 
     init_GroupButton(){
-        const container       = this.groupButtonContainer
+        const container       = groupButtonContainer
         const containerLength = container.children.length
 
         const button       = document.createElement('button');
@@ -222,15 +222,15 @@ class Upload{
 
             this.groupNumber = button.groupNumber
             
-            const buttons = this.groupButtonContainer.querySelectorAll('*');
+            const buttons = groupButtonContainer.querySelectorAll('*');
             
             let data
-            if (!this.buttonANOVA.classList.contains('active')){
+            if (!buttonANOVA.classList.contains('active')){
                 buttons.forEach(button => {
                     button.classList.remove('active');
                 });
                 data = button
-            } else if (this.buttonANOVA.classList.contains('active')){
+            } else if (buttonANOVA.classList.contains('active')){
                 data = await viewer.run_ANOVA(button,dataLink)
             }
            

@@ -20,24 +20,39 @@ body {
 #containers, #sliderElements{
     display: flex;
     align-items: center;  
-    justify-content: center;
-          
+    justify-content: center;          
 }
 
+#controls {
+    display: flex;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    align-items: center; 
+
+}
+
+#excludedDiv{
+    flex: 1; 
+    display: flex;
+    justify-content: flex-end;
+    align-items: center; 
+    margin-right: 20px;
+
+}
+
+#computeButtonsDiv{
+    flex: 1; 
+    display: flex;
+    justify-self: flex-start;
+    align-items: center; 
+
+}
 
 #container4, #heatmapWrapper  {
     display: flex;
     flex-direction: column; 
     align-items: center; 
 }
-
-#sliderDiv {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-
 
 #controls label {
     font-size: 1.5em;  
@@ -48,6 +63,7 @@ body {
     margin-right: 20px;  
     margin-left: 5px;
     font-size: 1.5em;  
+    width: 25px
 }
 
 input[type=range] {
@@ -66,7 +82,8 @@ input[type=range] {
 
 svg .dragColorbarLabel{
     font-size: 15px;
-    fill: #ffffff;
+    fill: rgb(255, 248, 116);
+    right: 20%
 
 }
 
@@ -97,13 +114,6 @@ svg .LFP-label {
     cursor: pointer;
   }
 
-/* .excludedTrialsContainer{
-    width: 10%;
-    display: flex;
-    justify-content: center;  
-    align-items: center; 
-} */
-
 
 #sliderContainer{
     width: 500px;
@@ -111,24 +121,24 @@ svg .LFP-label {
     overflow: hidden; 
 }
 
-
 .containerUploadButtons {
     position: relative;
 }
 
-.uploadButtons:hover .tooltipText {
+.divUploadButtons:hover .tooltipText {
     display: block;
+
 }
 
 .tooltipText {
     display: none;
     position: absolute;
-    background-color: #f9ab58;
+    background-color: #065214;
     text-align: center;
-    /* padding: 5px; */
+    box-sizing: border-box;
+    padding: 5px;
     border-radius: 5px;
-    width: 300px;
-    z-index: 1;
+    width: 250px;
 }
 
 #dataForm{
@@ -136,6 +146,7 @@ svg .LFP-label {
     justify-content: center;
     gap: 20px;
     padding-bottom: 20px;
+    padding-top: 20px;
 }
 
 .inputValues, .timeInput {
@@ -157,13 +168,13 @@ svg .LFP-label {
     text-align: center;
 }
 
-.groupButton.active, #buttonANOVA.active, #meanButton.active, 
+.groupButton.active, #buttonANOVA.active, #buttonMean.active, 
 #excludeTrialButton.active, #allANOVA.active, #buttonNew.active, #buttonBaseline.active{
     background-color: #555;
     color: white;
 }
 
-#meanButton, #buttonANOVA, #excludeTrialButton, #buttonBaseline, #allANOVA {
+#buttonMean, #buttonANOVA, #buttonExclude, #buttonBaseline {
     padding: 5px 10px;
     font-size: 1.1em;
     border-radius: 5px; 

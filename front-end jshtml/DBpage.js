@@ -40,7 +40,6 @@ class DBpage{
             viewer.set_ButtonBaseline()
             
             // this.set_excludeTrialButton()
-            this.channelButtonContainer.style.display = 'none'
             this.xAxisLabel.textContent = 'Time from button-press response (sec)'
         })
 
@@ -163,6 +162,8 @@ class DBpage{
             this.channelIdx = chanSelect.selectedIndex
             this.init_GroupButtons();
         });
+
+        this.channelButtonContainer.style.display = 'flex';
     }
 
        

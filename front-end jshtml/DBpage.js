@@ -159,6 +159,7 @@ class DBpage{
             dataLink.clear_Cache()
             this.channelIdx = chanSelect.selectedIndex
             this.init_GroupButtons();
+            heatmapView.style.display = 'none'
         });
 
         channelButtonContainer.style.display = 'flex';

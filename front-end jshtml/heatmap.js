@@ -57,10 +57,11 @@ class Heatmap {
                 .attr("class", "x-axis")
                 .call(d3.axisBottom(this.xScale)
                     .ticks(5)
-                    .tickFormat(''))  
+                    .tickFormat('')
+                )  
                 .attr("transform", `translate(0, ${this.heightSVG})`)
-                
-                
+
+      
             xAxis.append("text")
                 .attr("class", "dragColorbarLabel")
                 .attr("x", this.width - 10)  
@@ -68,8 +69,15 @@ class Heatmap {
                 .text('')
             
             if (this.container == '#container3'){
+                
                 xAxis.select('.dragColorbarLabel')
-                    .text('*Drag colorbar for scaling')
+                .text("\u21E7 DRAG")
+                .attr("transform", `translate(70, -2)`)
+     
+                heatMap.select('.x-axis')
+                .call(d3.axisBottom(this.xScale)
+                    .ticks(5)
+                )
             }    
             
             heatMap.selectAll()
@@ -104,7 +112,7 @@ class Heatmap {
 
         if (buttonANOVA.classList.contains('active')){
              this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([this.maxPower,0])
-             document.getElementById('colorbarLabel').textContent = 'p-Value'
+             document.getElementById('colorbarLabel').textContent = 'p-Value (Bonf. corrected)'
         } else {
              this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, this.maxPower])
              document.getElementById('colorbarLabel').innerHTML = 'Power  (uV / Hz<sup>2</sup>)'

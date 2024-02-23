@@ -83,8 +83,8 @@ input[type=range] {
 svg .dragColorbarLabel{
     font-size: 15px;
     fill: rgb(255, 248, 116);
-    right: 20%
-
+    right: 20%;
+    align-content: center;
 }
 
 svg .LFP-label {

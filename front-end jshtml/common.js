@@ -8,9 +8,9 @@ class Elements{
 
     initialize(){
         const ids = [
-            'buttonANOVA', 'sliderElements', 'buttonMean' , 
-            'buttonNew', 'buttonBaseline', 'heatmapView',
-            'containers', 'container4'
+            'buttonANOVA', 'sliderElements', 'buttonMean', 
+            'buttonBaseline', 'heatmapView', 'containers',
+            'container4'
         ]
 
         ids.forEach(id => {
@@ -38,9 +38,9 @@ class Elements{
 
             sliderElements.style.visibility = 'visible'
        
-        } else {
+        // } else {
 
-            sliderElements.style.visibility = 'hidden'
+        //     sliderElements.style.visibility = 'hidden'
 
         }
     }   
@@ -53,10 +53,10 @@ class Elements{
         } else{
             heatmapView.style.visibility = 'visible';
         }
+        
         containers.style.visibility  = 'hidden'
         container4.style.visibility  = 'hidden'
-        
-                            
+                                    
         let splitWavelets
 
         if (button.LFPs){
@@ -137,24 +137,33 @@ class Elements{
 
         buttonANOVA.addEventListener('click', ()  => {
             buttonANOVA.classList.toggle('active')
-            
-            heatmapView.style.visibility = 'hidden'
-            containers.style.visibility  = 'hidden'
-            container4.style.visibility  = 'hidden'
+            buttonANOVA.active = buttonANOVA.classList.contains('active')
+
+            heatmapView.style.visibility    = 'hidden'
+            containers.style.visibility     = 'hidden'
+            container4.style.visibility     = 'hidden'
             sliderElements.style.visibility = 'hidden'
-            
+
+            const uploadButtons = document.querySelectorAll('.uploadButtons')
+            const buttonNew = document.getElementById('buttonNew')
+
+            if (buttonNew){
+                                
+                uploadButtons.forEach(button => {
+                    button.disabled = buttonANOVA.active
+                })
+                                
+                buttonNew.disabled = buttonANOVA.active;
+            }
+
             buttonMean.classList.remove('active')
-            buttonMean.disabled = buttonANOVA.classList.contains('active')
-            buttonBaseline.disabled = buttonANOVA.classList.contains('active')
-            
+            buttonMean.disabled = buttonANOVA.active
+            buttonBaseline.disabled = buttonANOVA.active
+
             document.querySelectorAll('.groupButton')
                 .forEach(button =>
                     button.classList.remove('active')
             )
-
-            if (typeof buttonNew !== 'undefined' && buttonNew) {
-                buttonNew.disabled = buttonANOVA.classList.contains('active');
-            }
 
             dataLink.delete_GroupNumbers()
         })

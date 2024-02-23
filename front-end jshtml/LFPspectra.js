@@ -1,6 +1,7 @@
 // LFPspectra.js
 
 class SpectralPlot{
+    
     constructor() {
         
         this.containers= ['#container1', '#container2', '#container3'];
@@ -10,7 +11,6 @@ class SpectralPlot{
             { min: 20, max: 60 },
             { min: 0, max: 20 }
         ];
-
     }
         
     init_Wavelet(initSpectra) {
@@ -90,8 +90,7 @@ class LFPplot {
             .attr("class", "LFP-label")
             .attr("x",  - this.margin.right / 1.25 )  
             .attr("y",  - this.height / 2 ) 
-            .text("LFP (uV)")
-
+            .text(document.getElementById('buttonANOVA').classList.contains('active') ? "p-Value (corrected)" : "LFP (uV)")
 
         svg.append("g")
             .attr("transform", `translate(${this.margin.left}, ${this.height})`)    

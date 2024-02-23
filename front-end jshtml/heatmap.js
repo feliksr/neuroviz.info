@@ -100,14 +100,15 @@ class Heatmap {
     }
 
     set_ColorScale(filteredData){
-        // if (buttonANOVA.contains('active)){
-        //      this.maxPower = buttonpVal.value
-        //      this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([heatmap.maxPower,0])
-        //      document.getElementById('colorbarLabel').textContent = 'p-Value'
-        //  } else {
-             this.maxPower = 3 * d3.deviation(this.get_PowerValue(filteredData))
+        this.maxPower = 3 * d3.deviation(this.get_PowerValue(filteredData))
+
+        if (buttonANOVA.classList.contains('active')){
+             this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([this.maxPower,0])
+             document.getElementById('colorbarLabel').textContent = 'p-Value'
+        } else {
              this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, this.maxPower])
              document.getElementById('colorbarLabel').innerHTML = 'Power  (uV / Hz<sup>2</sup>)'
+        }
     }
 
     get_PowerValue(filteredData) {

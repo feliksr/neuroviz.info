@@ -28,7 +28,8 @@ class Colorbar {
             .attr("y", (_, i) => (this.numStops - i) * rectHeight - rectHeight)
             .attr("width", this.width)
             .attr("height", rectHeight)
-            .attr("fill", d => d3.interpolateViridis(d / (this.numStops)))
+            .attr("fill", d => buttonANOVA.classList.contains('active') ? d3.interpolateViridis(1 - (d / this.numStops)) : d3.interpolateViridis(d / this.numStops))
+
             .attr("shape-rendering", "crispEdges")
     }
 
@@ -36,14 +37,15 @@ class Colorbar {
 
         this.colorbarScale = d3.scaleLinear()
             .domain([0, this.heatmap.maxPower])
-            .range([this.heatmap.heightSVG, 0]);
+            .range([this.heatmap.heightSVG, 0])
         
-        if (this.heatmap.ANOVA === true){
+        if (document.getElementById('buttonANOVA').classList.contains('active')){
             this.colorbarScale.domain([this.heatmap.maxPower, 0])
+            this.colorbarScale.range([0, this.heatmap.heightSVG])
         }
-
     }
 
+    
     draw_Colorbar() {
         this.colorbarGroup.select('.colorbarTicks').remove();
 
@@ -57,12 +59,19 @@ class Colorbar {
 
         const dragged = () => {
             const yPosition = d3.event.y * 0.03; 
-            const maxPower = this.colorbarScale.invert(yPosition);
-
-            this.colorbarScale.domain([0, maxPower]);
-            this.draw_Colorbar();
-            this.heatmap.colorScale.domain([0, maxPower])
             
+            if (document.getElementById('buttonANOVA').classList.contains('active')){
+                const maxPower = this.colorbarScale.invert(yPosition);
+                this.heatmap.colorScale.domain([maxPower, 0])
+                this.colorbarScale.domain([maxPower, 0])
+            } else {
+                const maxPower = this.colorbarScale.invert(yPosition);
+                this.heatmap.colorScale.domain([0, maxPower])
+                this.colorbarScale.domain([0, maxPower]);
+            }
+            
+            this.draw_Colorbar();
+
             const slider = document.getElementById('slider')
             
             let trial

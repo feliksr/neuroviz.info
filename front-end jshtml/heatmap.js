@@ -29,17 +29,32 @@ class Heatmap {
             let filtWavelet = this.split_Freq(initSpectra);
 
             let allFreqBins = new Set(initSpectra.map(d => d.frequency)).size
-            let numFreqBins = new Set(filtWavelet.map(d => d.frequency)).size
-            let numTimeBins = new Set(filtWavelet.map(d => d.time)).size
+            let freqBins = Array.from(new Set(filtWavelet.map(d => d.frequency)))
+            let timeBins    = Array.from(new Set(filtWavelet.map(d => d.time)))
+            const numFreqBins = freqBins.length
+            const numTimeBins = timeBins.length
             
             this.heightSVG = this.height * (numFreqBins/allFreqBins)
+            
+            const binWidth   = this.width/numTimeBins
+            const binHeight = this.heightSVG/numFreqBins
+            
+            
             
             this.xScale = d3.scaleLinear()
                 .range([0, this.width])
                 .domain([d3.min(filtWavelet, d => d.time), d3.max(filtWavelet, d => d.time)]);
+
+            this.xScaleCorrected = d3.scaleLinear()
+                .range([0, this.width - binWidth])
+                .domain([d3.min(filtWavelet, d => d.time), d3.max(filtWavelet, d => d.time)]);
             
             this.yScale = d3.scaleLog()
                 .range([0, this.heightSVG])
+                .domain([d3.max(filtWavelet, d => d.frequency),d3.min(filtWavelet, d => d.frequency)]);
+
+            this.yScaleCorrected = d3.scaleLog()
+                .range([0, (this.heightSVG - binHeight)])
                 .domain([d3.max(filtWavelet, d => d.frequency),d3.min(filtWavelet, d => d.frequency)]);
                       
             this.svg = d3.select(this.container).append("svg")
@@ -61,32 +76,42 @@ class Heatmap {
                 )  
                 .attr("transform", `translate(0, ${this.heightSVG})`)
 
-      
-            xAxis.append("text")
-                .attr("class", "dragColorbarLabel")
-                .attr("x", this.width - 10)  
-                .attr("y", this.margin.bottom / 1.25)
-                .text('')
-            
+ 
             if (this.container == '#container3'){
                 
-                xAxis.select('.dragColorbarLabel')
+                xAxis.append("text")
+                .attr("class", "dragColorbarLabel")
+                .attr("x", this.width + 63)  
+                .attr("y", this.margin.bottom / 1.25)
                 .text("\u21E7 DRAG")
-                .attr("transform", `translate(70, -2)`)
-     
-                heatMap.select('.x-axis')
-                .call(d3.axisBottom(this.xScale)
-                    .ticks(5)
-                )
+
+                if(document.getElementById('container4').style.visibility === 'hidden'){
+                    
+                    heatMap.select('.x-axis')
+                    .call(d3.axisBottom(this.xScale)
+                        .ticks(5)
+                    ) 
+
+                    // heatMap.select('.x-axis')
+                    //     .append("text")
+                    //     .attr("fill", "#000") 
+                    //     .attr("transform", "translate(" + (this.width / 2) + " ," + (this.margin.bottom) + ")") 
+                    //     .attr("dy", "1em") 
+                    //     .attr("text-anchor", "middle") 
+                    //     .text("TIME");
+                } 
             }    
+    
+            // let timeBins = Array.from(new Set(filtWavelet.map(d => d.time)))
+            
             
             heatMap.selectAll()
                 .data(filtWavelet)
                 .enter().append("rect")
-                .attr("x", d => this.xScale(d.time))
-                .attr("y", d => this.yScale(d.frequency) -  this.heightSVG/(numFreqBins -1))
-                .attr("width", this.width /  (numTimeBins - 1))
-                .attr("height", this.heightSVG / (numFreqBins - 1))
+                .attr("x", d => this.xScaleCorrected(d.time))
+                .attr("y", d => this.yScaleCorrected(d.frequency))
+                .attr("width", this.width / numTimeBins)
+                .attr("height", this.heightSVG / numFreqBins)
                 .attr("shape-rendering", "crispEdges");
 
             return filtWavelet

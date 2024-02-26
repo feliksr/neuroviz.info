@@ -101,10 +101,7 @@ class Heatmap {
                     //     .text("TIME");
                 } 
             }    
-    
-            // let timeBins = Array.from(new Set(filtWavelet.map(d => d.time)))
-            
-            
+
             heatMap.selectAll()
                 .data(filtWavelet)
                 .enter().append("rect")

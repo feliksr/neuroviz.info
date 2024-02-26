@@ -38,9 +38,9 @@ class Elements{
 
             sliderElements.style.visibility = 'visible'
        
-        // } else {
+        } else {
 
-        //     sliderElements.style.visibility = 'hidden'
+            sliderElements.style.visibility = 'hidden'
 
         }
     }   
@@ -93,12 +93,6 @@ class Elements{
             }
             containers.style.visibility = 'visible'
             console.log('wavelet displayed')
-
-            // if(!button.LFPs){
-            //     const container = d3.select('#container3 svg')
-            //     console.log(d3.select('#container3'))
-            //     container.call(d3.axisBottom(this.xScale).ticks(5))
-            // }
         }
 
         this.set_Slider(button,splitWavelets)

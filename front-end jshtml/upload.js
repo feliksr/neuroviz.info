@@ -6,7 +6,7 @@ class Upload{
         const ids = [
             'loadingText',, 'fileUpload', 'xAxisLabel', 'buttonANOVA',
             'groupButtonContainer', 'heatmapView', 'buttonUploadLFP',
-            'buttonUploadWavelet', 'dataForm'
+            'buttonUploadWavelet', 'dataForm', 'uploadButtonsDiv'
         ];
 
         fetch('heatmap.html')
@@ -29,7 +29,6 @@ class Upload{
 
         dataLink.clear_Cache()
 
-        this.groupNumber = 0;
         xAxisLabel.textContent = 'Time (sec)'
         
         this.init_ButtonNewGroup()
@@ -39,7 +38,6 @@ class Upload{
         viewer.init_ButtonMean()
         viewer.init_ButtonANOVA(dataLink)
         viewer.set_ButtonBaseline()
-
     }
     
     wrap_Data() {
@@ -65,6 +63,15 @@ class Upload{
 
     init_ButtonsUpload() {
         
+        uploadButtonsDiv.addEventListener('mouseleave', function() {
+            let buttons = document.querySelectorAll('.groupButton')
+            buttons.forEach(button  => {
+                if (button.classList.contains('active')){
+                    uploadButtonsDiv.style.display = 'none';
+                }
+            })
+        });
+
         let url 
 
         buttonUploadWavelet.addEventListener('click', () => {
@@ -81,22 +88,22 @@ class Upload{
             loadingText.style.display = "block";  
             dataForm.style.display = 'none'    
             
-                const file  = event.target.files[0];
-                
-                const MAX_SIZE = 2 * 1024 * 1024 //  2MB limit
+            const file  = event.target.files[0];
+            
+            const MAX_SIZE = 2 * 1024 * 1024 //  2MB limit
 
-                if (file.size > MAX_SIZE) {
-                    alert('File is too large (>2MB). Reduce trials or frequency/time bins. ');
-                
-                } else {
-                    const args = this.wrap_Data()
-                    args.file = file
-                    args.url = url
+            if (file.size > MAX_SIZE) {
+                alert('File is too large (>2MB). Reduce trials or frequency/time bins. ');
+            
+            } else {
+                const args = this.wrap_Data()
+                args.file = file
+                args.url = url
 
-                    const responseData = await dataLink.upload_Data(args);
-                    const uploadData = dataLink.parse_Data(responseData);
-                    this.set_GroupButton(uploadData);
-                }
+                const responseData = await dataLink.upload_Data(args);
+                const uploadData = dataLink.parse_Data(responseData);
+                this.set_GroupButton(uploadData);
+            }
             
             loadingText.style.display = "none";  
             
@@ -158,6 +165,7 @@ class Upload{
  
         groupButtonContainer.appendChild(button)
         groupButtonContainer.style.display = 'none'
+        button.click()
     }
 
     
@@ -166,10 +174,10 @@ class Upload{
         this.groupNumber = 0;
         heatmapView.style.display = 'none'
 
-        
         const buttons = document.querySelectorAll('.groupButton');
         buttons.forEach(btn => btn.classList.remove('active'));                
         groupButtonContainer.lastElementChild.classList.add('active');
+        uploadButtonsDiv.style.display = 'flex'
     }
 
 
@@ -211,32 +219,40 @@ class Upload{
 
         button.addEventListener('click', () => this.click_GroupButton(button));
 
+        button.addEventListener('mouseover', function() {
+            if(button.classList.contains('active') && !buttonANOVA.classList.contains('active')){
+                uploadButtonsDiv.style.display = 'flex';
+            }
+        })
+
         container.insertBefore(button,container.children[containerLength-1])
         container.style.display = 'flex'
-
+        uploadButtonsDiv.style.display = 'none';
         return button
     }
 
 
     click_GroupButton = async (button) => {
 
-            this.groupNumber = button.groupNumber
-            
-            const buttons = groupButtonContainer.querySelectorAll('*');
-            
-            let data
-            if (!buttonANOVA.classList.contains('active')){
-                buttons.forEach(button => {
-                    button.classList.remove('active');
-                });
-                data = button
-            } else if (buttonANOVA.classList.contains('active')){
-                data = await viewer.run_ANOVA(button,dataLink)
-            }
-           
-            button.classList.add('active');
-                                                               
-            viewer.view_Trials(data)
+        this.groupNumber = button.groupNumber
+
+        uploadButtonsDiv.style.display = 'none'
+        
+        const buttons = groupButtonContainer.querySelectorAll('*');
+        
+        let data
+        if (!buttonANOVA.classList.contains('active')){
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            data = button
+        } else if (buttonANOVA.classList.contains('active')){
+            data = await viewer.run_ANOVA(button,dataLink)
+        }
+        
+        button.classList.add('active');
+                                                            
+        viewer.view_Trials(data)
     }
 }
 

@@ -30,7 +30,6 @@ body {
     margin-top: 10px;
     margin-bottom: 10px;
     align-items: center; 
-
 }
 
 #excludedDiv{
@@ -39,7 +38,6 @@ body {
     justify-content: flex-end;
     align-items: center; 
     margin-right: 20px;
-
 }
 
 #computeButtonsDiv{
@@ -47,7 +45,6 @@ body {
     display: flex;
     justify-self: flex-start;
     align-items: center; 
-
 }
 
 #container4, #heatmapWrapper  {
@@ -114,7 +111,7 @@ svg .LFP-label {
 
 .colorbar-rect {
     cursor: pointer;
-  }
+}
 
 
 #sliderContainer{
@@ -123,13 +120,8 @@ svg .LFP-label {
     overflow: hidden; 
 }
 
-.containerUploadButtons {
-    position: relative;
-}
-
 .divUploadButtons:hover .tooltipText {
     display: block;
-
 }
 
 .tooltipText {
@@ -142,6 +134,7 @@ svg .LFP-label {
     border-radius: 5px;
     width: 250px;
 }
+
 
 #dataForm{
     display: flex;
@@ -199,9 +192,9 @@ svg .LFP-label {
 #uploadButtonsDiv{
     display: flex;
     justify-content: center;
-    padding-top: 10px;
-    padding-bottom: 20px;
+    align-items: center;
     gap: 10px;
+    margin-bottom: 20px;
 }
 
 #sessionText {
@@ -217,7 +210,6 @@ svg .LFP-label {
     border: 2px solid #007bff;
     border-radius: 5px; 
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); 
-    
 }
 
 #chanSelect option {

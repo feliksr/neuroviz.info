@@ -10,7 +10,7 @@
 <body>
     <a href="home.html" id="homeButton">Return Home</a>
 
-    <input type="file" id="fileUpload" accept=".npy" style="display: none;" />
+    <input type="file" id="fileUpload" accept=".npy, .mat" style="display: none;" />
 
     <div id="heatmapView" style= "display: none;"></div>
     
@@ -38,7 +38,7 @@
                 
                 <span class="tooltipText" style = "transform: translate(-102%, -85%);">
                     Power (uV/Hz^2) for dimensions: <br> 
-                    Frequency x Time x Trials for each (.npy) file/channel
+                    Frequency x Time x Trials for each (.npy or .mat) file/channel
                 </span>
 
             </div>
@@ -51,7 +51,7 @@
                     
                 <span class="tooltipText" style = "transform: translate(82%, -85%);">
                     Voltage (uV) for dimensions: <br>    
-                    Time x Trials for each (.npy) file/channel
+                    Time x Trials for each (.npy or .mat) file/channel
                 </span>
                 
             </div>

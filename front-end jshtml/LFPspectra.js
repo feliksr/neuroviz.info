@@ -22,7 +22,7 @@ class SpectralPlot{
             
             const heatmap = new Heatmap(container,freqBin);
             heatmap.initialize(initSpectra);
-            heatmap.set_ColorScale(initSpectra);
+            // heatmap.set_ColorScale(initSpectra);
           
             heatmap.colorbar = new Colorbar(heatmap);
             heatmap.colorbar.init_Colorbar();

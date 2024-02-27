@@ -31,6 +31,7 @@ class Heatmap {
             let allFreqBins = new Set(initSpectra.map(d => d.frequency)).size
             let freqBins = Array.from(new Set(filtWavelet.map(d => d.frequency)))
             let timeBins    = Array.from(new Set(filtWavelet.map(d => d.time)))
+            
             const numFreqBins = freqBins.length
             const numTimeBins = timeBins.length
             
@@ -38,8 +39,7 @@ class Heatmap {
             
             const binWidth   = this.width/numTimeBins
             const binHeight = this.heightSVG/numFreqBins
-            
-            
+                      
             
             this.xScale = d3.scaleLinear()
                 .range([0, this.width])
@@ -115,10 +115,11 @@ class Heatmap {
     }
         
     draw_Heatmap(filteredData) {
-        const button = document.getElementById('buttonBaseline')
+        const buttonBaseline = document.getElementById('buttonBaseline')
+
         let adjustedPower
         
-        if(button.classList.contains('active')){
+        if(buttonBaseline.classList.contains('active')){
             adjustedPower = true
         } else {
             adjustedPower = false
@@ -144,9 +145,9 @@ class Heatmap {
     get_PowerValue(filteredData) {
         
         let adjustedPower
-        const button = document.getElementById('buttonBaseline')
+        const buttonBaseline = document.getElementById('buttonBaseline')
         
-        if(button.classList.contains('active')){
+        if(buttonBaseline.classList.contains('active')){
             adjustedPower = true
         } else {
             adjustedPower = false

@@ -1,13 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_caching import Cache
+from werkzeug.utils import secure_filename 
 import numpy as np
 import scipy.stats as stats
+from scipy.io import loadmat
 import mysql.connector
 import json
 import io
 import math
 import os
+
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -92,7 +95,26 @@ class Database:
         freqScale_list = json.loads(freqScale)
 
         return channelArrays, timeStart, timeStop, freqScale_list, xBinsWavelet, yBinsWavelet
-     
+
+class Upload:
+    def upload(self,request):
+
+        filename = secure_filename(request.filename)  
+        path, extension = os.path.splitext(filename)   
+        extension = extension.lower()          
+
+        if extension == '.npy':
+            data = np.load(request, allow_pickle=False).astype(np.int32)
+
+        elif extension == '.mat':
+            mat_content = io.BytesIO(request.read())
+            mat_data = loadmat(mat_content)
+            data = (mat_data[path]).astype(np.int32)
+        else:
+            data = None
+
+        return data
+
 @application.route('/api/chans', methods=['POST'])
 def get_chans():
     args = request.json
@@ -112,7 +134,6 @@ def get_chans():
 
 
 @application.route('/api/ANOVA', methods= ['POST'])
-
 def run_ANOVA():
 
     json_data   = json.loads(request.form['jsonData'])
@@ -187,7 +208,8 @@ def run_ANOVA():
         })
 
     return jsonify(data_ANOVA)
-                    
+
+
 @application.route('/api/stored', methods=['POST'])
 def serve_data():
     args        = request.json
@@ -255,8 +277,13 @@ def upload_Wavelet():
     freqHigh    = json_data['freqHigh']
     groupNumber = json_data['groupNumber']
 
-    waveletRequest = request.files['file']
-    wavelets_data  = np.load(waveletRequest).transpose(2,0,1)
+    wavelets_request = request.files['file']
+    
+    uploads = Upload()
+    wavelets_upload = uploads.upload(wavelets_request)
+
+    wavelets_data = wavelets_upload.transpose(2,0,1)
+
     wavelets_mean  = np.expand_dims(
                             np.mean(wavelets_data,axis=0)
                                 ,axis=0)
@@ -265,13 +292,13 @@ def upload_Wavelet():
         cache.set('wavelets_data', [None] * 10, timeout = 3600)
         
     arrays = cache.get('wavelets_data')  
-    arrays[groupNumber] = wavelets_data 
+    arrays[groupNumber] = wavelets_data
     cache.set('wavelets_data', arrays, timeout= 3600)
     
     wavelets_freq = np.logspace(np.log10(freqLow), np.log10(freqHigh), wavelets_data.shape[1])
     wavelets_time = np.linspace(timeStart,timeStop,wavelets_data.shape[2])
-    cache.set('wavelets_time', wavelets_time,timeout=3600)
-    cache.set('wavelets_freq', wavelets_freq, timeout =3600)
+    cache.set('wavelets_time', wavelets_time,timeout = 3600)
+    cache.set('wavelets_freq', wavelets_freq, timeout = 3600)
 
     return jsonify({
         "wavelets_data"  : json.dumps(wavelets_data.tolist()),
@@ -286,9 +313,13 @@ def upload_LFP():
     timeStart   = json_data['timeStart']
     timeStop    = json_data['timeStop']
     groupNumber = json_data['groupNumber']
+    
+    LFPs_request = request.files['file']
 
-    LFPrequest  = request.files['file']
-    LFPs_data   = np.load(LFPrequest).transpose(1,0)
+    uploads = Upload()
+    LFPs_upload = uploads.upload(LFPs_request)
+    
+    LFPs_data = LFPs_upload.transpose(1, 0)
 
     LFPs_mean = np.expand_dims(
                     np.mean(LFPs_data,axis=0)

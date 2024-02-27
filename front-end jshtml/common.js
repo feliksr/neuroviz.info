@@ -91,6 +91,7 @@ class Elements{
                 splitWavelets = spectra.init_Wavelet(initWavelet)
                 spectra.set_Wavelet(initWavelet,splitWavelets)
             }
+            
             containers.style.visibility = 'visible'
             console.log('wavelet displayed')
         }
@@ -103,6 +104,7 @@ class Elements{
         
         buttonMean.addEventListener('click', () => {
             buttonMean.classList.toggle('active')
+            buttonANOVA.disabled = buttonBaseline.classList.contains('active') || buttonMean.classList.contains('active')
 
             document.querySelectorAll('.groupButton').forEach(button => {
                 if (button.classList.contains('active')){
@@ -113,6 +115,7 @@ class Elements{
     }
     
     async run_ANOVA(button,dataLink){
+        
         const args = {
             "url": 'ANOVA'
         }
@@ -138,19 +141,12 @@ class Elements{
             container4.style.visibility     = 'hidden'
             sliderElements.style.visibility = 'hidden'
 
-            const uploadButtons = document.querySelectorAll('.uploadButtons')
             const buttonNew = document.getElementById('buttonNew')
 
-            if (buttonNew){
-                                
-                uploadButtons.forEach(button => {
-                    button.disabled = buttonANOVA.active
-                })
-                                
+            if (buttonNew){       
                 buttonNew.disabled = buttonANOVA.active;
             }
 
-            buttonMean.classList.remove('active')
             buttonMean.disabled = buttonANOVA.active
             buttonBaseline.disabled = buttonANOVA.active
 
@@ -167,7 +163,7 @@ class Elements{
 
         buttonBaseline.addEventListener('click', () =>{
             buttonBaseline.classList.toggle('active')
-            buttonANOVA.disabled = buttonBaseline.classList.contains('active')
+            buttonANOVA.disabled = buttonBaseline.classList.contains('active') || buttonMean.classList.contains('active')
             document.querySelectorAll('.groupButton').forEach(button => {
                 if(button.classList.contains('active')){
                     button.click()

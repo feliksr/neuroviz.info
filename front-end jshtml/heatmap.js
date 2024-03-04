@@ -13,7 +13,6 @@ class Heatmap {
             bottom: 30,
             left: 50
         };
-
     }
     
     split_Freq(wavelet){
@@ -119,7 +118,7 @@ class Heatmap {
 
         let adjustedPower
         
-        if(buttonBaseline.classList.contains('active')){
+        if(buttonBaseline.active){
             adjustedPower = true
         } else {
             adjustedPower = false
@@ -131,15 +130,28 @@ class Heatmap {
     }
 
     set_ColorScale(filteredData){
-        this.maxPower = 3 * d3.deviation(this.get_PowerValue(filteredData))
+        const label = document.getElementById('colorbarLabel')
 
-        if (buttonANOVA.classList.contains('active')){
-             this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([this.maxPower,0])
-             document.getElementById('colorbarLabel').textContent = 'p-Value (Bonf. corrected)'
+        if (buttonANOVA.active){
+            this.maxPower = 0.15
+        } else if(buttonMean.active){
+            this.maxPower = d3.max(this.get_PowerValue(filteredData))
         } else {
-             this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, this.maxPower])
-             document.getElementById('colorbarLabel').innerHTML = 'Power  (uV / Hz<sup>2</sup>)'
+            this.maxPower = 2.5 * d3.deviation(this.get_PowerValue(filteredData))
         }
+
+        if (buttonANOVA.active){
+            this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([this.maxPower,0])
+            label.textContent = 'p-Value (Bonf. corrected)'
+
+        } else if (buttonPCA.active) {
+            this.colorScale = d3.scaleDiverging(d3.interpolateRdBu).domain([-this.maxPower, 0,  this.maxPower]);
+            label.textContent = 'Z-score'
+
+        } else {
+            this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, this.maxPower])
+            label.innerHTML = 'Power  (uV / Hz<sup>2</sup>)'
+        }       
     }
 
     get_PowerValue(filteredData) {
@@ -147,7 +159,7 @@ class Heatmap {
         let adjustedPower
         const buttonBaseline = document.getElementById('buttonBaseline')
         
-        if(buttonBaseline.classList.contains('active')){
+        if(buttonBaseline.active){
             adjustedPower = true
         } else {
             adjustedPower = false

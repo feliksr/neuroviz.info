@@ -40,12 +40,6 @@ body {
     margin-right: 20px;
 }
 
-#computeButtonsDiv{
-    flex: 1; 
-    display: flex;
-    justify-self: flex-start;
-    align-items: center; 
-}
 
 #container4, #heatmapWrapper  {
     display: flex;
@@ -162,13 +156,44 @@ svg .LFP-label {
     text-align: center;
 }
 
-.groupButton.active, #buttonANOVA.active, #buttonMean.active, 
+.groupButton.active, #buttonANOVA.active, #buttonMean.active, #buttonPCA.active,
 #excludeTrialButton.active, #allANOVA.active, #buttonNew.active, #buttonBaseline.active{
     background-color: #555;
     color: white;
 }
 
-#buttonMean, #buttonANOVA, #buttonExclude, #buttonBaseline {
+#computeButtonsDiv{
+    flex: 1; 
+    display: flex;
+    justify-self: flex-start;
+    align-items: center; 
+    position: relative;
+}
+
+#formPCA {
+    display: none;
+    position: absolute;
+    top: -100%;
+    left: 7%;
+    z-index:0
+}
+
+ #buttonPCA.active:hover + #formPCA, #formPCA:hover {
+    display: flex;
+}
+
+
+#buttonPCA.active {
+    z-index:10
+}
+.component {
+    width: 2.2em;
+    font-size: 2em;
+    padding: .5em
+}
+
+
+#buttonMean, #buttonANOVA, #buttonExclude, #buttonBaseline, #buttonPCA{
     padding: 5px 10px;
     font-size: 1.1em;
     border-radius: 5px; 

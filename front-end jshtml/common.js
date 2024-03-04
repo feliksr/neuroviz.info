@@ -8,9 +8,9 @@ class Elements{
 
     initialize(){
         const ids = [
-            'buttonANOVA', 'sliderElements', 'buttonMean', 
-            'buttonBaseline', 'heatmapView', 'containers',
-            'container4'
+            'buttonANOVA', 'buttonMean', 'buttonBaseline', 'buttonPCA',
+            'heatmapView', 'containers', 'sliderElements', 'container4',
+            'computeButtonsDiv', 'formPCA'
         ]
 
         ids.forEach(id => {
@@ -39,9 +39,7 @@ class Elements{
             sliderElements.style.visibility = 'visible'
        
         } else {
-
             sliderElements.style.visibility = 'hidden'
-
         }
     }   
 
@@ -62,7 +60,7 @@ class Elements{
         if (button.LFPs){
             let initLFP
 
-            if (!buttonMean.classList.contains('active')){
+            if (!buttonMean.active){
                 initLFP = button.LFPs.d3.data.filter(d => d.trial === 1)
             } else {
                 initLFP = button.LFPs.d3.mean
@@ -80,7 +78,7 @@ class Elements{
             let initWavelet
             let spectra = new SpectralPlot();
 
-            if (!buttonMean.classList.contains('active')){
+            if (!buttonMean.active){
                 initWavelet = button.wavelets.d3.data.filter(d => d.trial === 1)
                 splitWavelets = spectra.init_Wavelet(initWavelet)
                 spectra.set_Wavelet(button.wavelets.d3.data,splitWavelets)
@@ -88,10 +86,11 @@ class Elements{
             } else {
 
                 initWavelet = button.wavelets.d3.mean
+                
                 splitWavelets = spectra.init_Wavelet(initWavelet)
                 spectra.set_Wavelet(initWavelet,splitWavelets)
             }
-            
+            console.log(initWavelet)
             containers.style.visibility = 'visible'
             console.log('wavelet displayed')
         }
@@ -100,20 +99,65 @@ class Elements{
     }
 
 
-    init_ButtonMean(){
-        
-        buttonMean.addEventListener('click', () => {
-            buttonMean.classList.toggle('active')
-            buttonANOVA.disabled = buttonBaseline.classList.contains('active') || buttonMean.classList.contains('active')
+    init_AnalysisButton(button,dataLink){
+        button.active = false
 
-            document.querySelectorAll('.groupButton').forEach(button => {
-                if (button.classList.contains('active')){
-                    this.view_Trials(button)
+        button.addEventListener('click', () => {
+            button.classList.toggle('active')
+            button.active = button.classList.contains('active')
+            
+            const buttonDiv = computeButtonsDiv.querySelectorAll('*')
+            
+            buttonDiv.forEach(btn => {
+                if (btn !== button){
+                    btn.disabled = button.active
+                }
+            })
+            const PCAdiv = document.querySelectorAll('#computeButtonsDiv #formPCA .component');
+            PCAdiv.forEach(component => {
+                component.disabled = false;
+            })
+            buttonMean.disabled = buttonPCA.disabled
+
+            const buttonNew = document.getElementById('buttonNew')
+
+            if (buttonNew){       
+                buttonNew.disabled = button.active;
+            }
+
+            document.querySelectorAll('.groupButton')
+                .forEach(button =>
+                    button.classList.remove('active')
+            )
+
+            heatmapView.style.visibility    = 'hidden'
+            containers.style.visibility     = 'hidden'
+            container4.style.visibility     = 'hidden'
+            sliderElements.style.visibility = 'hidden'
+
+            dataLink.delete_GroupNumbers()
+        })
+    }
+
+
+    init_ModifyButton(button){
+        button.active = false
+        
+        button.addEventListener('click', () => {
+            button.classList.toggle('active')
+            button.active = button.classList.contains('active')
+
+            buttonANOVA.disabled = buttonBaseline.active || buttonMean.active || buttonPCA.active
+            buttonPCA.disabled =  buttonBaseline.active
+
+            document.querySelectorAll('.groupButton').forEach(btn => {
+                if (btn.classList.contains('active')){
+                    btn.click()
                 }
             })
         })
     }
-    
+        
     async run_ANOVA(button,dataLink){
         
         const args = {
@@ -129,47 +173,34 @@ class Elements{
         return data
     }
 
-    init_ButtonANOVA(dataLink){
-        const buttonANOVA = document.getElementById('buttonANOVA')
+    async run_PCA(button,dataLink){
+        const compStart = document.getElementById('compStart')
+        const compEnd = document.getElementById('compEnd')
 
-        buttonANOVA.addEventListener('click', ()  => {
-            buttonANOVA.classList.toggle('active')
-            buttonANOVA.active = buttonANOVA.classList.contains('active')
+        if (compStart && compEnd && compStart.value>compEnd.value){
+            const start  = compStart.value
+            const end = compEnd.value
+            compEnd.value = start
+            compStart.value = end
+        }
 
-            heatmapView.style.visibility    = 'hidden'
-            containers.style.visibility     = 'hidden'
-            container4.style.visibility     = 'hidden'
-            sliderElements.style.visibility = 'hidden'
+        const args = {
+            "url": 'PCA'
+        }
 
-            const buttonNew = document.getElementById('buttonNew')
+        args.formData = {
+            "groupNumber": button.groupNumber,
+            "componentStart": compStart  ? parseInt(compStart.value) : null,
+            "componentEnd": compEnd ? parseInt(compEnd.value) : null
+        };
+        
 
-            if (buttonNew){       
-                buttonNew.disabled = buttonANOVA.active;
-            }
-
-            buttonMean.disabled = buttonANOVA.active
-            buttonBaseline.disabled = buttonANOVA.active
-
-            document.querySelectorAll('.groupButton')
-                .forEach(button =>
-                    button.classList.remove('active')
-            )
-
-            dataLink.delete_GroupNumbers()
-        })
+        const response = await dataLink.upload_Data(args)
+        const data = dataLink.parse_Data(response)
+        compEnd.value = response.componentEnd
+        compStart.value = response.componentStart
+        return data
     }
-
-    set_ButtonBaseline(){
-
-        buttonBaseline.addEventListener('click', () =>{
-            buttonBaseline.classList.toggle('active')
-            buttonANOVA.disabled = buttonBaseline.classList.contains('active') || buttonMean.classList.contains('active')
-            document.querySelectorAll('.groupButton').forEach(button => {
-                if(button.classList.contains('active')){
-                    button.click()
-                }
-            })
-        })
-    }
+    
 }
 

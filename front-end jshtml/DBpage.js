@@ -17,7 +17,7 @@ class DBpage{
 
         const ids = [
             'nextChan', 'prevChan', 'chanSelect', 'channelButtonContainer',
-            'excludeTrialButton', 'buttonANOVA', 
+            'excludeTrialButton', 'buttonANOVA', 'buttonPCA',
             'groupButtonContainer', 'xAxisLabel', 'heatmapView'
         ];
 
@@ -35,11 +35,13 @@ class DBpage{
             dataLink.clear_Cache()
             this.init_GroupButtons()
             this.set_ChannelButtons()
-            viewer.init_ButtonMean()
-            viewer.init_ButtonANOVA(dataLink)
-            viewer.set_ButtonBaseline()
+
+            viewer.init_ModifyButton(buttonMean)
+            viewer.init_ModifyButton(buttonBaseline)
+    
+            viewer.init_AnalysisButton(buttonANOVA,dataLink)
+            viewer.init_AnalysisButton(buttonPCA,dataLink)
             
-            // this.set_excludeTrialButton()
             xAxisLabel.textContent = 'Time from button-press response (sec)'
         })
 
@@ -76,27 +78,26 @@ class DBpage{
     }
 
     
-    set_GroupButtonClick(groupButton){
+    set_GroupButtonClick(button){
+        const buttons = groupButtonContainer.querySelectorAll('*');
 
-        groupButton.addEventListener('click', async () => {
+        button.addEventListener('click', async () => {
                 
-            await this.set_GroupButtonData(groupButton)
+            await this.set_GroupButtonData(button)
             
             let data
-            if (!buttonANOVA.classList.contains('active')){
-                document.querySelectorAll('.groupButton')
-                
-                .forEach(button => 
-                    button.classList.remove('active')
-                );
-                
-                data = groupButton
-
-            } else if(buttonANOVA.classList.contains('active')){
-                data = await viewer.run_ANOVA(groupButton,dataLink)
-            }
+        if (!buttonANOVA.active && !buttonPCA.active ){
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            data = button
+        } else if (buttonANOVA.active) {
+            data = await viewer.run_ANOVA(button,dataLink)
+        } else if (buttonPCA.active) {
+            data = await viewer.run_PCA(button,dataLink)
+        }
             
-            groupButton.classList.add('active'); 
+            button.classList.add('active'); 
             
             viewer.view_Trials(data)
         })

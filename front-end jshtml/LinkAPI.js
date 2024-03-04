@@ -121,10 +121,10 @@ class LinkAPI{
             data = LFPs.data
         }
 
-        data.forEach((trial, indexTrial) => {
-             trial.forEach((voltage, timeIndex) =>{
+        data.forEach((trial, trialIndex) => {
+             trial.forEach((voltage, timeIndex) => {
                 d3LFPs.push({ 
-                    'trial'   : indexTrial+1, 
+                    'trial'   : trialIndex+1, 
                     'time'    : LFPs.time[timeIndex],
                     'voltage' : voltage 
                 });
@@ -156,7 +156,7 @@ class LinkAPI{
                 });
             });
         });
-
+        
         return d3Wavelets;
     }
 
@@ -184,7 +184,7 @@ class LinkAPI{
                     wavelets,mean=true)
             }
 
-            data.wavelets = wavelets    
+            data.wavelets = wavelets  
         }
 
         if (responseData.LFPs_data){

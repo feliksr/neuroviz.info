@@ -1,17 +1,18 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from flask_caching import Cache
-from werkzeug.utils import secure_filename 
-import numpy as np
-import scipy.stats as stats
-from scipy.io import loadmat
-import mysql.connector
 import json
 import io
 import math
 import os
+import mysql.connector
+import numpy as np
+import scipy.stats as stats
 
-
+from werkzeug.utils import secure_filename 
+from scipy.io import loadmat
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_caching import Cache
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -30,6 +31,7 @@ CORS(application)
 
 DB_CONFIG_JSON = os.environ.get('DB_CONFIG')
 DB_CONFIG = json.loads(DB_CONFIG_JSON)
+
 
 class Database:
 
@@ -96,6 +98,7 @@ class Database:
 
         return channelArrays, timeStart, timeStop, freqScale_list, xBinsWavelet, yBinsWavelet
 
+
 class Upload:
     def upload(self,request):
 
@@ -114,6 +117,7 @@ class Upload:
             data = None
 
         return data
+
 
 @application.route('/api/chans', methods=['POST'])
 def get_chans():
@@ -134,21 +138,22 @@ def get_chans():
 
 
 @application.route('/api/ANOVA', methods= ['POST'])
+@limiter.exempt()
 def run_ANOVA():
-
-    json_data   = json.loads(request.form['jsonData'])
-    groupNumber = json_data['groupNumber']
-
     LFPs_ANOVA     = None
     wavelets_ANOVA = None
     data_ANOVA     = {}
+    
+    json_data   = json.loads(request.form['jsonData'])
     
     LFPs          = cache.get('LFPs_data')
     LFPs_time     = cache.get('LFPs_time')
     wavelets_time = cache.get('wavelets_time')
     wavelets_freq = cache.get('wavelets_freq')
     wavelets      = cache.get('wavelets_data')
-    
+
+    groupNumber = json_data['groupNumber']
+
     if not cache.get('groupNumbers'):
         cache.set('groupNumbers', [None] * 10, timeout = 3600)
         
@@ -209,6 +214,78 @@ def run_ANOVA():
 
     return jsonify(data_ANOVA)
 
+@application.route('/api/PCA', methods= ['POST'])
+@limiter.exempt()
+def run_PCA():
+    json_data     = json.loads(request.form['jsonData'])
+    groupNumber   = json_data['groupNumber']
+    
+    wavelets_time = cache.get('wavelets_time')
+    wavelets_freq = cache.get('wavelets_freq') 
+    wavelets      = cache.get('wavelets_data')
+
+    if not cache.get('groupNumbers'):
+        cache.set('groupNumbers', [], timeout = 3600)
+    
+    groupNumbers = cache.get('groupNumbers')
+    if groupNumber not in groupNumbers:
+        groupNumbers.append(groupNumber)
+        cache.set('groupNumbers', groupNumbers, timeout = 3600)    
+    
+    wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
+    wavelets_shape  = [wavelets.shape for wavelets in wavelets_arrays]
+    wavelets_PCA_matrix = [wavelet.reshape(wavelet.shape[0], -1) for wavelet in wavelets_arrays]
+
+    wavelets_PCA_stacked = np.concatenate(wavelets_PCA_matrix, axis=0)
+
+    scaler = StandardScaler()
+    wavelets_PCA_scaled = scaler.fit_transform(wavelets_PCA_stacked)
+    pca = PCA() 
+    wavelets_PCA = pca.fit_transform(wavelets_PCA_scaled)
+    maxComponents = (pca.components_.shape[0])
+    
+    if not json_data['componentStart']:
+        componentStart = 0
+    elif json_data['componentStart']>maxComponents-1:
+        componentStart = maxComponents-1
+    else :
+        componentStart = json_data['componentStart']
+
+
+    if not json_data['componentEnd'] or json_data['componentEnd']>maxComponents:
+        componentEnd = maxComponents
+    elif json_data['componentEnd']:
+        componentEnd = json_data['componentEnd']
+
+
+    wavelets_PCA_components = wavelets_PCA[:, componentStart:componentEnd]
+
+    components_selected = pca.components_[componentStart:componentEnd]
+    wavelets_PCA_mean = pca.mean_
+
+    wavelets_PCA_reconstructed = np.dot(wavelets_PCA_components, components_selected) + wavelets_PCA_mean
+
+    wavelets_trials = [shape[0] for shape in wavelets_shape] 
+    
+    splits = np.cumsum(wavelets_trials[:-1])  
+
+    wavelets_split = np.split(wavelets_PCA_reconstructed, splits)
+    
+    wavelets_PCA_group = wavelets_split[groupNumbers.index(groupNumber)]
+    wavelets_PCA_group_shape = wavelets_shape[groupNumbers.index(groupNumber)]
+
+    wavelets_data = wavelets_PCA_group.reshape(wavelets_PCA_group_shape)
+
+    wavelets_mean = np.expand_dims(np.mean(wavelets_data,axis=0),axis=0)
+
+    return jsonify({
+        "wavelets_data"  : json.dumps(wavelets_data.tolist()),
+        "wavelets_mean"  : json.dumps(wavelets_mean.tolist()),
+        "wavelets_freq"  : wavelets_freq.tolist(),
+        "wavelets_time"  : wavelets_time.tolist(),
+        "componentStart" : componentStart+1,
+        "componentEnd"   : componentEnd
+    })
 
 @application.route('/api/stored', methods=['POST'])
 def serve_data():

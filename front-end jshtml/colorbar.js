@@ -18,11 +18,18 @@ class Colorbar {
             .enter().append("rect")
             .attr("class", "colorbar-rect")
             .attr("x", 0)
-            .attr("y", (_, i) => (this.numStops - i) * rectHeight - rectHeight)
+            .attr("y", (_,i) => rectHeight*i)
             .attr("width", this.width)
             .attr("height", rectHeight)
-            .attr("fill", d => buttonANOVA.classList.contains('active') ? d3.interpolateViridis(1 - (d / this.numStops)) : d3.interpolateViridis(d / this.numStops))
-
+            .attr("fill", d => {
+                if (buttonANOVA.active) {
+                    return d3.interpolateViridis(d / this.numStops);
+                } else if (buttonPCA.active) { 
+                    return d3.interpolateRdBu(d / this.numStops);
+                } else {
+                    return d3.interpolateViridis(1 - (d/this.numStops));
+                }
+            })
             .attr("shape-rendering", "crispEdges")
     }
 
@@ -32,7 +39,9 @@ class Colorbar {
             .domain([0, this.heatmap.maxPower])
             .range([this.heatmap.heightSVG, 0])
         
-        if (document.getElementById('buttonANOVA').classList.contains('active')){
+        if (document.getElementById('buttonPCA').active) {
+            this.colorbarScale.domain([-this.heatmap.maxPower, this.heatmap.maxPower])
+        } else if (document.getElementById('buttonANOVA').active){
             this.colorbarScale.domain([this.heatmap.maxPower, 0])
             this.colorbarScale.range([0, this.heatmap.heightSVG])
         }
@@ -53,10 +62,16 @@ class Colorbar {
         const dragged = () => {
             const yPosition = d3.event.y * 0.03; 
             
-            if (document.getElementById('buttonANOVA').classList.contains('active')){
+            if (document.getElementById('buttonANOVA').active){
                 const maxPower = this.colorbarScale.invert(yPosition);
                 this.heatmap.colorScale.domain([maxPower, 0])
                 this.colorbarScale.domain([maxPower, 0])
+            } else if (document.getElementById('buttonPCA').active){
+                const maxPower = this.colorbarScale.invert(yPosition);
+                this.heatmap.colorScale.domain([-maxPower, 0, maxPower])
+                this.colorbarScale.domain([-maxPower, maxPower])
+            
+            
             } else {
                 const maxPower = this.colorbarScale.invert(yPosition);
                 this.heatmap.colorScale.domain([0, maxPower])

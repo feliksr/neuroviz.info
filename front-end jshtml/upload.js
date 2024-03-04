@@ -6,7 +6,8 @@ class Upload{
         const ids = [
             'loadingText',, 'fileUpload', 'xAxisLabel', 'buttonANOVA',
             'groupButtonContainer', 'heatmapView', 'buttonUploadLFP',
-            'buttonUploadWavelet', 'dataForm', 'uploadButtonsDiv'
+            'buttonUploadWavelet', 'dataForm', 'uploadButtonsDiv','buttonPCA',
+            'buttonMean','buttonBaseline'
         ];
 
         fetch('heatmap.html')
@@ -35,9 +36,12 @@ class Upload{
         this.init_DataForm()
         this.init_ButtonsUpload()
 
-        viewer.init_ButtonMean()
-        viewer.init_ButtonANOVA(dataLink)
-        viewer.set_ButtonBaseline()
+        viewer.init_ModifyButton(buttonMean)
+        viewer.init_ModifyButton(buttonBaseline)
+
+        viewer.init_AnalysisButton(buttonANOVA,dataLink)
+        viewer.init_AnalysisButton(buttonPCA,dataLink)
+
     }
     
     wrap_Data() {
@@ -63,11 +67,11 @@ class Upload{
 
     init_ButtonsUpload() {
         
-        uploadButtonsDiv.addEventListener('mouseleave', function() {
+        uploadButtonsDiv.addEventListener('mouseleave', () => {
             let buttons = document.querySelectorAll('.groupButton')
             buttons.forEach(button  => {
                 if (button.classList.contains('active')){
-                    uploadButtonsDiv.style.display = 'none';
+                    setTimeout(() => {uploadButtonsDiv.style.display = 'none';}, 300);
                 }
             })
         });
@@ -219,12 +223,12 @@ class Upload{
 
         button.addEventListener('click', () => this.click_GroupButton(button));
 
-        button.addEventListener('mouseover', function() {
-            if(button.classList.contains('active') && !buttonANOVA.classList.contains('active')){
-                uploadButtonsDiv.style.display = 'flex';
+        button.addEventListener('mouseover', () => {
+            if(button.classList.contains('active') && !buttonANOVA.active && !buttonPCA.active){
+                setTimeout(() => {uploadButtonsDiv.style.display = 'flex';}, 0);
             }
         })
-
+     
         container.insertBefore(button,container.children[containerLength-1])
         container.style.display = 'flex'
         uploadButtonsDiv.style.display = 'none';
@@ -235,19 +239,19 @@ class Upload{
     click_GroupButton = async (button) => {
 
         this.groupNumber = button.groupNumber
-
-        uploadButtonsDiv.style.display = 'none'
         
         const buttons = groupButtonContainer.querySelectorAll('*');
         
         let data
-        if (!buttonANOVA.classList.contains('active')){
+        if (!buttonANOVA.active && !buttonPCA.active ){
             buttons.forEach(button => {
                 button.classList.remove('active');
             });
             data = button
-        } else if (buttonANOVA.classList.contains('active')){
+        } else if (buttonANOVA.active) {
             data = await viewer.run_ANOVA(button,dataLink)
+        } else if (buttonPCA.active) {
+            data = await viewer.run_PCA(button,dataLink)
         }
         
         button.classList.add('active');

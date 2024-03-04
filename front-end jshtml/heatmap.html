@@ -29,9 +29,17 @@
     </div>
     
     <div id = computeButtonsDiv>
-    <button id = 'buttonMean'>Average Trials</button>
-    <button id="buttonANOVA">ANOVA</button>
-    <button id = "buttonBaseline"> 1/f correction</button>
+        <button id = "buttonBaseline"> 1/f correction</button>
+        <button id = "buttonPCA">PCA</button>
+        
+        <form id = formPCA>
+            <label id = "compLabel">Components:</label>
+            <input id="compStart" type="number" class= "component" min="1">
+            <input id="compEnd"  type="number"class = "component">
+        </form>
+        
+        <button id = "buttonANOVA">ANOVA</button>
+        <button id = "buttonMean">Average Trials</button>
     </div>        
 
 </div>

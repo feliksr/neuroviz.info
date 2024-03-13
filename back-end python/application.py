@@ -198,7 +198,7 @@ def run_ANOVA():
                 LFPs_pVals[row] = pVal * LFPs_numberOf
         
         LFPs_ANOVA = np.expand_dims(LFPs_pVals,axis=0)  
-     
+    
     if wavelets_ANOVA is not None:
         data_ANOVA.update({
             "wavelets_data" : json.dumps(wavelets_ANOVA.tolist()),
@@ -246,17 +246,15 @@ def run_PCA():
     
     if not json_data['componentStart']:
         componentStart = 0
-    elif json_data['componentStart']>maxComponents-1:
-        componentStart = maxComponents-1
+    elif json_data['componentStart']>maxComponents:
+        componentStart = maxComponents
     else :
-        componentStart = json_data['componentStart']
-
+        componentStart = json_data['componentStart']-1
 
     if not json_data['componentEnd'] or json_data['componentEnd']>maxComponents:
         componentEnd = maxComponents
     elif json_data['componentEnd']:
         componentEnd = json_data['componentEnd']
-
 
     wavelets_PCA_components = wavelets_PCA[:, componentStart:componentEnd]
 
@@ -431,3 +429,7 @@ def delete_groupNumbers():
     cache.delete('groupNumbers')
     print('deleted numbers')
     return 'deleted numbers'
+
+@application.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy'}), 200

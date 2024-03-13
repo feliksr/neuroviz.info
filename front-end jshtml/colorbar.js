@@ -58,22 +58,28 @@ class Colorbar {
     }  
 
     set_ColorbarDragging(waveletTrials) {
-
+        let lastY = null;
+        const scalingFactor = .1
         const dragged = () => {
-            const yPosition = d3.event.y * 0.03; 
+            const currentY = d3.event.y; 
             
+            let deltaY = 0;
+            if (lastY !== null) {
+                deltaY = (currentY - lastY) * scalingFactor
+            }
+            console.log(deltaY)
             if (document.getElementById('buttonANOVA').active){
-                const maxPower = this.colorbarScale.invert(yPosition);
+                const maxPower = this.colorbarScale.invert(deltaY);
                 this.heatmap.colorScale.domain([maxPower, 0])
                 this.colorbarScale.domain([maxPower, 0])
             } else if (document.getElementById('buttonPCA').active){
-                const maxPower = this.colorbarScale.invert(yPosition);
+                const maxPower = this.colorbarScale.invert(deltaY);
                 this.heatmap.colorScale.domain([-maxPower, 0, maxPower])
                 this.colorbarScale.domain([-maxPower, maxPower])
             
             
             } else {
-                const maxPower = this.colorbarScale.invert(yPosition);
+                const maxPower = this.colorbarScale.invert(deltaY);
                 this.heatmap.colorScale.domain([0, maxPower])
                 this.colorbarScale.domain([0, maxPower]);
             }
@@ -93,10 +99,12 @@ class Colorbar {
             const waveletTrial = waveletTrials.filter(d => d.trial === parseInt(trial))
             const splitWavelet = this.heatmap.split_Freq(waveletTrial)
             this.heatmap.draw_Heatmap(splitWavelet);            
-            }
+        }
 
         const dragHandler = d3.drag()
-            .on('drag', dragged);
+            .on('start', () => {lastY = d3.event.y})
+            .on('drag', dragged)
+            .on('end', () => {lastY = null})
 
         dragHandler(this.colorbarGroup);
     }

@@ -165,19 +165,20 @@ def run_ANOVA():
         
         wavelets_arrays = [wavelets[i] for i in groupNumbers if i is not None and wavelets[i] is not None]
         wavelets_shapeWavelet = wavelets_arrays[0].shape[1:]
-        wavelets_numberOf = len(wavelets_arrays)
 
         wavelets_pVals = np.empty(wavelets_shapeWavelet)
         for row in range(wavelets_shapeWavelet[0]):
             for column in range(wavelets_shapeWavelet[1]):
                 values = [wavelet[:, row, column] for wavelet in wavelets_arrays]
                 _, pVal = stats.f_oneway(*values)
+
+                numValues = wavelets_shapeWavelet[0]*wavelets_shapeWavelet[1]
                 
                 if math.isnan(pVal):
-                    wavelets_pVals[row, column] = wavelets_numberOf
+                    wavelets_pVals[row, column] = numValues
 
                 else:
-                    wavelets_pVals[row, column] = pVal * wavelets_numberOf
+                    wavelets_pVals[row, column] = pVal * numValues
 
         wavelets_ANOVA = np.expand_dims(wavelets_pVals,axis=0)
       
@@ -185,17 +186,18 @@ def run_ANOVA():
 
         LFPs_arrays = [LFPs[i] for i in groupNumbers if i is not None and LFPs[i] is not None]
         LFPs_shapeLFP = LFPs_arrays[0].shape[1]
-        LFPs_numberOf = len(LFPs_arrays)
         
         LFPs_pVals = np.empty(LFPs_shapeLFP)
         for row in range(LFPs_shapeLFP):
             values = [LFP[:,row] for LFP in LFPs_arrays]
             _, pVal = stats.f_oneway(*values)
 
+            numValues = LFPs_shapeLFP
+
             if math.isnan(pVal):
-                LFPs_pVals[row] = LFPs_numberOf
+                LFPs_pVals[row] = numValues
             else:
-                LFPs_pVals[row] = pVal * LFPs_numberOf
+                LFPs_pVals[row] = pVal * numValues
         
         LFPs_ANOVA = np.expand_dims(LFPs_pVals,axis=0)  
     
@@ -217,8 +219,9 @@ def run_ANOVA():
 @application.route('/api/PCA', methods= ['POST'])
 @limiter.exempt()
 def run_PCA():
-    json_data     = json.loads(request.form['jsonData'])
-    groupNumber   = json_data['groupNumber']
+    json_data   = json.loads(request.form['jsonData'])
+    groupNumber = json_data['groupNumber']
+    # baseCorrect = json_data['baseCorrect']
     
     wavelets_time = cache.get('wavelets_time')
     wavelets_freq = cache.get('wavelets_freq') 

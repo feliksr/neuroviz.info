@@ -80,8 +80,8 @@ class LFPplot {
 
         const yScale = d3.scaleLinear()
             .rangeRound([this.height, 0])
-            .domain(d3.extent(data, d => d.voltage));
-        
+            .domain(buttonANOVA.active ? [0, 1] : d3.extent(data, d => d.voltage))
+            
         svg.append("g")
             .attr("transform", `translate(${this.width + this.margin.left}, 0)`)
             .attr("class", "y-axis")
@@ -116,6 +116,6 @@ class LFPplot {
             .attr("stroke", "steelblue")
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
-            .attr("stroke-width", 2);
+            .attr("stroke-width", 3);
     }
 }            

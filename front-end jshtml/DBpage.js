@@ -79,23 +79,24 @@ class DBpage{
 
     
     set_GroupButtonClick(button){
-        const buttons = groupButtonContainer.querySelectorAll('*');
 
         button.addEventListener('click', async () => {
+            const buttons = groupButtonContainer.querySelectorAll('*');
                 
             await this.set_GroupButtonData(button)
             
             let data
-        if (!buttonANOVA.active && !buttonPCA.active ){
-            buttons.forEach(button => {
-                button.classList.remove('active');
-            });
-            data = button
-        } else if (buttonANOVA.active) {
-            data = await viewer.run_ANOVA(button,dataLink)
-        } else if (buttonPCA.active) {
-            data = await viewer.run_PCA(button,dataLink)
-        }
+
+            if (buttonANOVA.active) {
+                data = await viewer.run_ANOVA(button,dataLink)
+            } else if (buttonPCA.active) {
+                data = await viewer.run_PCA(button,dataLink)
+            }else{
+                buttons.forEach(button => {
+                    button.classList.remove('active');
+                });
+                data = button
+            }
             
             button.classList.add('active'); 
             

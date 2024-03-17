@@ -24,7 +24,7 @@ cache = Cache(application)
 limiter = Limiter(
     app=application,
     key_func=get_remote_address, 
-    default_limits=["1000 per day", "10 per minute"] 
+    default_limits=["3000 per day", "20 per minute"] 
 )
 
 CORS(application)
@@ -175,10 +175,10 @@ def run_ANOVA():
                 numValues = wavelets_shapeWavelet[0]*wavelets_shapeWavelet[1]
                 
                 if math.isnan(pVal):
-                    wavelets_pVals[row, column] = numValues
+                    wavelets_pVals[row, column] = 1
 
                 else:
-                    wavelets_pVals[row, column] = pVal * numValues
+                    wavelets_pVals[row, column] = min(pVal * numValues, 1)
 
         wavelets_ANOVA = np.expand_dims(wavelets_pVals,axis=0)
       
@@ -195,9 +195,9 @@ def run_ANOVA():
             numValues = LFPs_shapeLFP
 
             if math.isnan(pVal):
-                LFPs_pVals[row] = numValues
+                LFPs_pVals[row] = .99
             else:
-                LFPs_pVals[row] = pVal * numValues
+                LFPs_pVals[row] = min(pVal * numValues, .99)
         
         LFPs_ANOVA = np.expand_dims(LFPs_pVals,axis=0)  
     
@@ -434,5 +434,6 @@ def delete_groupNumbers():
     return 'deleted numbers'
 
 @application.route('/api/health', methods=['GET'])
+@limiter.exempt()
 def health_check():
     return jsonify({'status': 'healthy'}), 200

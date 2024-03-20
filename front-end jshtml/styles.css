@@ -4,14 +4,18 @@ body {
     color: #ffffff;
 }
 
-#homeButton {
-    display:flex;
+#homeButton, #email {
     color: rgb(0, 162, 255);
     text-decoration: underline;
     cursor: pointer;
     font-size: 1.5em;
     font-weight: bold;
-    margin-bottom: 1em;
+}
+
+#email{
+    position: fixed;
+    top: 0;
+    right: 0;
 }
 
 #loadingText {
@@ -156,8 +160,9 @@ svg .LFP-label {
     text-align: center;
 }
 
-.groupButton.active, #buttonANOVA.active, #buttonMean.active, #buttonPCA.active,
-#excludeTrialButton.active, #allANOVA.active, #buttonNew.active, #buttonBaseline.active{
+.groupButton.active, #buttonANOVA.active, #buttonMean.active, 
+#buttonPCA.active, #buttonBonf.active, #buttonNew.active, 
+#buttonBaseline.active{
     background-color: #555;
     color: white;
 }
@@ -178,22 +183,32 @@ svg .LFP-label {
     z-index:0
 }
 
- #buttonPCA.active:hover + #formPCA, #formPCA:hover {
+ #buttonPCA.active:hover + #formPCA, #formPCA:hover, 
+ #buttonANOVA.active:hover + #buttonBonf, #buttonBonf:hover {
     display: flex;
 }
 
+#buttonBonf {
+    display:none;
+}
 
 #buttonPCA.active {
     z-index:10
 }
+
 .component {
     width: 2.2em;
     font-size: 2em;
     padding: .5em
 }
 
+#ANOVAdiv{
+    display: grid;
+    place-items: center; 
+}
 
-#buttonMean, #buttonANOVA, #buttonExclude, #buttonBaseline, #buttonPCA{
+#buttonMean, #buttonANOVA, #buttonExclude, 
+#buttonBaseline, #buttonPCA, #buttonBonf{
     padding: 5px 10px;
     font-size: 1.1em;
     border-radius: 5px; 
@@ -239,4 +254,20 @@ svg .LFP-label {
 
 #chanSelect option {
     white-space: pre;
+}
+
+
+#AWSdiv{
+    position: fixed;
+    right: 0;
+    bottom: 0;
+}
+
+#AWSlogo img{
+    height: 45px;
+    width: auto;
+}
+
+#AWStext {
+    font-size: 80%;
 }

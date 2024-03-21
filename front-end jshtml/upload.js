@@ -42,6 +42,7 @@ class Upload{
         viewer.init_AnalysisButton(buttonANOVA,dataLink)
         viewer.init_AnalysisButton(buttonPCA,dataLink)
 
+        viewer.init_buttonBonf()
     }
     
     wrap_Data() {

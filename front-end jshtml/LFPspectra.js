@@ -22,7 +22,6 @@ class SpectralPlot{
             
             const heatmap = new Heatmap(container,freqBin);
             heatmap.initialize(initSpectra);
-            // heatmap.set_ColorScale(initSpectra);
           
             heatmap.colorbar = new Colorbar(heatmap);
             heatmap.colorbar.init_Colorbar();
@@ -80,7 +79,7 @@ class LFPplot {
 
         const yScale = d3.scaleLinear()
             .rangeRound([this.height, 0])
-            .domain(buttonANOVA.active ? [0, 1] : d3.extent(data, d => d.voltage))
+            .domain(buttonANOVA.active  ? [0, 1] : d3.extent(data, d => d.voltage))
             
         svg.append("g")
             .attr("transform", `translate(${this.width + this.margin.left}, 0)`)
@@ -88,10 +87,16 @@ class LFPplot {
             .call(d3.axisRight(yScale).ticks(5))
             .append("text")
             .attr("class", "LFP-label")
-            .attr("x",  - this.margin.right / 1.25 )  
-            .attr("y",  - this.height / 2 ) 
-            .text(document.getElementById('buttonANOVA').classList.contains('active') ? "p-Value (corrected)" : "LFP (uV)")
-
+            .attr("x",  -this.margin.right / 1.25 )  
+            .attr("y",  -this.height / 2 ) 
+            .text(
+                buttonANOVA.active && buttonBonf.active
+                  ? "p-Value (corrected)" 
+                  : (buttonANOVA.active 
+                      ? "p-Value" 
+                      : "LFP (uV)")
+              )
+              
         svg.append("g")
             .attr("transform", `translate(${this.margin.left}, ${this.height})`)    
             .attr("class", "x-axis")

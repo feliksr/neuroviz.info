@@ -20,7 +20,7 @@ application = Flask(__name__)
 application.config['CACHE_TYPE'] = 'SimpleCache'
 
 cache = Cache(application)
-
+timeout = 36000
 limiter = Limiter(
     app=application,
     key_func=get_remote_address, 
@@ -150,20 +150,26 @@ def run_ANOVA():
     LFPs_time     = cache.get('LFPs_time')
     wavelets_time = cache.get('wavelets_time')
     wavelets_freq = cache.get('wavelets_freq')
-    wavelets      = cache.get('wavelets_data')
+    wavelets_data = cache.get('wavelets_data')
+    PCA_data      = cache.get('PCA_data')
 
     groupNumber = json_data['groupNumber']
+    bonfCorrect = json_data['bonfCorrect']
+    PCA_adjust  = json_data['PCAadjust']
 
-    if not cache.get('groupNumbers'):
-        cache.set('groupNumbers', [None] * 10, timeout = 3600)
-        
     groupNumbers = cache.get('groupNumbers')
-    groupNumbers[groupNumber] = groupNumber
-    cache.set('groupNumbers', groupNumbers, timeout = 3600)
+    if groupNumber not in groupNumbers:
+        groupNumbers.append(groupNumber)
+        cache.set('groupNumbers', groupNumbers, timeout = timeout)
+    
+    if PCA_adjust:
+        wavelets = PCA_data
+    else:
+        wavelets = wavelets_data
 
-    if wavelets and sum(wavelets[i] is not None for i in groupNumbers if i is not None) > 1:
+    if wavelets and sum(wavelets[i] is not None for i in groupNumbers) > 1:
         
-        wavelets_arrays = [wavelets[i] for i in groupNumbers if i is not None and wavelets[i] is not None]
+        wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
         wavelets_shapeWavelet = wavelets_arrays[0].shape[1:]
 
         wavelets_pVals = np.empty(wavelets_shapeWavelet)
@@ -172,7 +178,10 @@ def run_ANOVA():
                 values = [wavelet[:, row, column] for wavelet in wavelets_arrays]
                 _, pVal = stats.f_oneway(*values)
 
-                numValues = wavelets_shapeWavelet[0]*wavelets_shapeWavelet[1]
+                if bonfCorrect == True:
+                    numValues = wavelets_shapeWavelet[0]*wavelets_shapeWavelet[1]
+                else:
+                    numValues = 1
                 
                 if math.isnan(pVal):
                     wavelets_pVals[row, column] = 1
@@ -182,9 +191,9 @@ def run_ANOVA():
 
         wavelets_ANOVA = np.expand_dims(wavelets_pVals,axis=0)
       
-    if LFPs and sum(LFPs[i] is not None for i in groupNumbers if i is not None) > 1:
+    if LFPs and sum(LFPs[i] is not None for i in groupNumbers) > 1:
 
-        LFPs_arrays = [LFPs[i] for i in groupNumbers if i is not None and LFPs[i] is not None]
+        LFPs_arrays = [LFPs[i] for i in groupNumbers if LFPs[i] is not None]
         LFPs_shapeLFP = LFPs_arrays[0].shape[1]
         
         LFPs_pVals = np.empty(LFPs_shapeLFP)
@@ -192,7 +201,10 @@ def run_ANOVA():
             values = [LFP[:,row] for LFP in LFPs_arrays]
             _, pVal = stats.f_oneway(*values)
 
-            numValues = LFPs_shapeLFP
+            if bonfCorrect == True:
+                numValues = LFPs_shapeLFP
+            else:
+                numValues = 1
 
             if math.isnan(pVal):
                 LFPs_pVals[row] = .99
@@ -221,22 +233,27 @@ def run_ANOVA():
 def run_PCA():
     json_data   = json.loads(request.form['jsonData'])
     groupNumber = json_data['groupNumber']
-    # baseCorrect = json_data['baseCorrect']
-    
+    baseCorrect = json_data['baseCorrect']
+
     wavelets_time = cache.get('wavelets_time')
     wavelets_freq = cache.get('wavelets_freq') 
     wavelets      = cache.get('wavelets_data')
 
     if not cache.get('groupNumbers'):
-        cache.set('groupNumbers', [], timeout = 3600)
+        cache.set('groupNumbers', [], timeout = timeout)
     
     groupNumbers = cache.get('groupNumbers')
     if groupNumber not in groupNumbers:
         groupNumbers.append(groupNumber)
-        cache.set('groupNumbers', groupNumbers, timeout = 3600)    
+        cache.set('groupNumbers', groupNumbers, timeout = timeout)    
     
-    wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
+    if baseCorrect == True:
+        wavelets_arrays = [wavelets[i]*wavelets_freq[None,:,None] for i in groupNumbers if wavelets[i] is not None]
+    else:
+        wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
+
     wavelets_shape  = [wavelets.shape for wavelets in wavelets_arrays]
+
     wavelets_PCA_matrix = [wavelet.reshape(wavelet.shape[0], -1) for wavelet in wavelets_arrays]
 
     wavelets_PCA_stacked = np.concatenate(wavelets_PCA_matrix, axis=0)
@@ -268,7 +285,7 @@ def run_PCA():
 
     wavelets_trials = [shape[0] for shape in wavelets_shape] 
     
-    splits = np.cumsum(wavelets_trials[:-1])  
+    splits = np.cumsum(wavelets_trials[:-1])
 
     wavelets_split = np.split(wavelets_PCA_reconstructed, splits)
     
@@ -278,6 +295,13 @@ def run_PCA():
     wavelets_data = wavelets_PCA_group.reshape(wavelets_PCA_group_shape)
 
     wavelets_mean = np.expand_dims(np.mean(wavelets_data,axis=0),axis=0)
+
+    if not cache.get('PCA_data'):
+        cache.set('PCA_data', [None] * 10, timeout = timeout)
+        
+    PCA_arrays = cache.get('PCA_data')
+    PCA_arrays[groupNumber] = wavelets_data
+    cache.set('PCA_data', PCA_arrays, timeout= timeout)
 
     return jsonify({
         "wavelets_data"  : json.dumps(wavelets_data.tolist()),
@@ -320,8 +344,8 @@ def serve_data():
 
   
     if not cache.get('wavelets_data'):
-        cache.set('LFPs_data', [None] * 10, timeout = 3600)
-        cache.set('wavelets_data', [None] * 10, timeout = 3600)
+        cache.set('LFPs_data', [None] * 10, timeout = timeout)
+        cache.set('wavelets_data', [None] * 10, timeout = timeout)
         
     wavelets_arrays = cache.get('wavelets_data')
     LFPs_arrays     = cache.get('LFPs_data')
@@ -329,11 +353,11 @@ def serve_data():
     wavelets_arrays[groupNumber] = wavelets_data
     LFPs_arrays[groupNumber]     = LFPs_data
 
-    cache.set('LFPs_data', LFPs_arrays, timeout = 3600)
-    cache.set('LFPs_time', LFPs_time, timeout = 3600)
-    cache.set('wavelets_data', wavelets_arrays , timeout = 3600)
-    cache.set('wavelets_time', wavelets_time, timeout = 3600)
-    cache.set('wavelets_freq', wavelets_freq, timeout = 3600)
+    cache.set('LFPs_data', LFPs_arrays, timeout = timeout)
+    cache.set('LFPs_time', LFPs_time, timeout = timeout)
+    cache.set('wavelets_data', wavelets_arrays , timeout = timeout)
+    cache.set('wavelets_time', wavelets_time, timeout = timeout)
+    cache.set('wavelets_freq', wavelets_freq, timeout = timeout)
 
     return jsonify({
         "wavelets_data"  : json.dumps(wavelets_data.tolist()),
@@ -367,16 +391,16 @@ def upload_Wavelet():
                                 ,axis=0)
 
     if not cache.get('wavelets_data'):
-        cache.set('wavelets_data', [None] * 10, timeout = 3600)
+        cache.set('wavelets_data', [None] * 10, timeout = timeout)
         
     arrays = cache.get('wavelets_data')  
     arrays[groupNumber] = wavelets_data
-    cache.set('wavelets_data', arrays, timeout= 3600)
+    cache.set('wavelets_data', arrays, timeout= timeout)
     
     wavelets_freq = np.logspace(np.log10(freqLow), np.log10(freqHigh), wavelets_data.shape[1])
     wavelets_time = np.linspace(timeStart,timeStop,wavelets_data.shape[2])
-    cache.set('wavelets_time', wavelets_time,timeout = 3600)
-    cache.set('wavelets_freq', wavelets_freq, timeout = 3600)
+    cache.set('wavelets_time', wavelets_time,timeout = timeout)
+    cache.set('wavelets_freq', wavelets_freq, timeout = timeout)
 
     return jsonify({
         "wavelets_data"  : json.dumps(wavelets_data.tolist()),
@@ -404,14 +428,14 @@ def upload_LFP():
                         ,axis=0)
     
     if not cache.get('LFPs_data'):
-        cache.set('LFPs_data', [None] * 10, timeout = 3600)
+        cache.set('LFPs_data', [None] * 10, timeout = timeout)
           
     arrays = cache.get('LFPs_data')
     arrays[groupNumber] = LFPs_data
-    cache.set('LFPs_data', arrays, timeout= 3600)
+    cache.set('LFPs_data', arrays, timeout= timeout)
 
     LFPs_time = np.linspace(timeStart,timeStop,LFPs_data.shape[1])
-    cache.set('LFPs_time', LFPs_time,timeout=3600)
+    cache.set('LFPs_time', LFPs_time,timeout=timeout)
    
     return jsonify({
         "LFPs_data"  : json.dumps(LFPs_data.tolist()),

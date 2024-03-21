@@ -41,6 +41,8 @@ class DBpage{
     
             viewer.init_AnalysisButton(buttonANOVA,dataLink)
             viewer.init_AnalysisButton(buttonPCA,dataLink)
+
+            viewer.init_buttonBonf()
             
             xAxisLabel.textContent = 'Time from button-press response (sec)'
         })
@@ -119,8 +121,7 @@ class DBpage{
         button.chanLabels = this.chanLabels;
         
         if (!button.wavelets){
-            console.log('got data')
-            
+                        
             const responseData = await dataLink.get_Data(button,this.channelIdx);
             const data = dataLink.parse_Data(responseData)
             button.wavelets = data.wavelets

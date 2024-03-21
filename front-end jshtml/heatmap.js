@@ -114,11 +114,10 @@ class Heatmap {
     }
         
     draw_Heatmap(filteredData) {
-        const buttonBaseline = document.getElementById('buttonBaseline')
 
         let adjustedPower
         
-        if(buttonBaseline.active){
+        if(buttonBaseline.active && !buttonPCA.active){
             adjustedPower = true
         } else {
             adjustedPower = false
@@ -133,7 +132,7 @@ class Heatmap {
         const label = document.getElementById('colorbarLabel')
 
         if (buttonANOVA.active){
-            this.maxPower = 0.15
+            this.maxPower = 0.151
         } else if(buttonMean.active){
             this.maxPower = d3.max(this.get_PowerValue(filteredData))
         } else {
@@ -142,8 +141,12 @@ class Heatmap {
 
         if (buttonANOVA.active){
             this.colorScale = d3.scaleSequential(d3.interpolateViridis).domain([this.maxPower,0])
-            label.textContent = 'p-Value (Bonf. corrected)'
+            if (buttonBonf.active){
+                label.textContent = 'p-Value (Bonf. corrected)'
+            }else{
+                label.textContent = 'p-Value'
 
+            }
         } else if (buttonPCA.active) {
             this.colorScale = d3.scaleDiverging(d3.interpolateRdBu).domain([-this.maxPower, 0,  this.maxPower]);
             label.textContent = 'Z-score'
@@ -157,9 +160,8 @@ class Heatmap {
     get_PowerValue(filteredData) {
         
         let adjustedPower
-        const buttonBaseline = document.getElementById('buttonBaseline')
         
-        if(buttonBaseline.active){
+        if(buttonBaseline.active && !buttonPCA.active){
             adjustedPower = true
         } else {
             adjustedPower = false

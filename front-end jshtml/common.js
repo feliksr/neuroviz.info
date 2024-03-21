@@ -8,7 +8,7 @@ class Elements{
 
     initialize(){
         const ids = [
-            'buttonANOVA', 'buttonMean', 'buttonBaseline', 'buttonPCA',
+            'buttonANOVA', 'buttonMean', 'buttonBaseline', 'buttonPCA', 'buttonBonf',
             'heatmapView', 'containers', 'sliderElements', 'container4',
             'computeButtonsDiv', 'formPCA'
         ]
@@ -90,7 +90,6 @@ class Elements{
                 splitWavelets = spectra.init_Wavelet(initWavelet)
                 spectra.set_Wavelet(initWavelet,splitWavelets)
             }
-            console.log(initWavelet)
             containers.style.visibility = 'visible'
             console.log('wavelet displayed')
         }
@@ -105,30 +104,22 @@ class Elements{
         button.addEventListener('click', () => {
             button.classList.toggle('active')
             button.active = button.classList.contains('active')
-            
-            const buttonDiv = computeButtonsDiv.querySelectorAll('*')
-            
-            buttonDiv.forEach(btn => {
-                if (btn !== button){
-                    btn.disabled = button.active
-                }
-            })
-            const PCAdiv = document.querySelectorAll('#computeButtonsDiv #formPCA .component');
-            PCAdiv.forEach(component => {
-                component.disabled = false;
-            })
-            buttonMean.disabled = buttonPCA.disabled
+
+            buttonBaseline.disabled = buttonANOVA.active
+            buttonMean.disabled = buttonANOVA.active
+            // buttonPCA.disabled = buttonANOVA.active
+            // buttonANOVA.disabled = buttonPCA.active
+                
+            document.querySelectorAll('.groupButton')
+                .forEach(button =>
+                    button.classList.remove('active')
+            )
 
             const buttonNew = document.getElementById('buttonNew')
 
             if (buttonNew){       
                 buttonNew.disabled = button.active;
             }
-
-            document.querySelectorAll('.groupButton')
-                .forEach(button =>
-                    button.classList.remove('active')
-            )
 
             heatmapView.style.visibility    = 'hidden'
             containers.style.visibility     = 'hidden'
@@ -139,6 +130,13 @@ class Elements{
         })
     }
 
+    init_buttonBonf(){
+        buttonBonf.active = false
+        buttonBonf.addEventListener('click', () => {
+            buttonBonf.classList.toggle('active')
+            buttonBonf.active = buttonBonf.classList.contains('active')
+        })
+    }
 
     init_ModifyButton(button){
         button.active = false
@@ -148,16 +146,15 @@ class Elements{
             button.active = button.classList.contains('active')
 
             buttonANOVA.disabled = buttonBaseline.active || buttonMean.active || buttonPCA.active
-            buttonPCA.disabled =  buttonBaseline.active
 
             document.querySelectorAll('.groupButton').forEach(btn => {
-                if (btn.classList.contains('active')){
+                if (btn.classList.contains('active') && !buttonANOVA.active && !buttonPCA.active){
                     btn.click()
                 }
             })
         })
     }
-        
+    
     async run_ANOVA(button,dataLink){
         
         const args = {
@@ -165,7 +162,8 @@ class Elements{
         }
 
         args.formData = {
-            "groupNumber" : button.groupNumber
+            "groupNumber" : button.groupNumber,
+            "bonfCorrect"  : buttonBonf.active
         }
 
         const response = await dataLink.upload_Data(args)
@@ -189,9 +187,10 @@ class Elements{
         }
 
         args.formData = {
-            "groupNumber": button.groupNumber,
-            "componentStart": compStart  ? parseInt(compStart.value) : null,
-            "componentEnd": compEnd ? parseInt(compEnd.value) : null
+            "groupNumber"    : button.groupNumber,
+            "baseCorrect"    : buttonBaseline.active,
+            "componentStart" : compStart ? parseInt(compStart.value) : null,
+            "componentEnd"   : compEnd ? parseInt(compEnd.value) : null
         };
         
 

@@ -99,7 +99,7 @@ class DBpage{
             }
             
             button.classList.add('active'); 
-            
+            viewer.groupNumber = button.groupNumber
             viewer.view_Trials(data)
         })
     }

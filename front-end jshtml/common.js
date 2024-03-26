@@ -108,8 +108,12 @@ class Elements{
             buttonBaseline.disabled = buttonANOVA.active && !buttonPCA.active
             buttonMean.disabled = buttonANOVA.active
             
-            if (button === buttonANOVA && buttonPCA.active){
-                let pass
+            if (button === buttonANOVA && buttonPCA.active || buttonPCA && buttonANOVA.active){
+                document.querySelectorAll('.groupButton').forEach(btn => {
+                    if (btn.groupNumber === this.groupNumber){
+                        btn.click()
+                    }
+                })
             } else {
                 dataLink.delete_GroupNumbers()
             }
@@ -131,6 +135,12 @@ class Elements{
         buttonBonf.addEventListener('click', () => {
             buttonBonf.classList.toggle('active')
             buttonBonf.active = buttonBonf.classList.contains('active')
+
+            document.querySelectorAll('.groupButton').forEach(btn => {
+                if (btn.groupNumber === this.groupNumber){
+                    btn.click()
+                }
+            })
         })
     }
 
@@ -144,7 +154,7 @@ class Elements{
             buttonANOVA.disabled = buttonMean.active || (buttonBaseline.active && !buttonPCA.active)
 
             document.querySelectorAll('.groupButton').forEach(btn => {
-                if (btn.classList.contains('active') && !buttonANOVA.active && !buttonPCA.active){
+                if (btn.groupNumber === this.groupNumber){
                     btn.click()
                 }
             })

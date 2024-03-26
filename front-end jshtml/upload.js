@@ -48,10 +48,10 @@ class Upload{
     wrap_Data() {
         let groupNumber
 
-        if (this.groupNumber === 0){
+        if (viewer.groupNumber === 0){
             groupNumber = groupButtonContainer.children.length
         } else {
-            groupNumber = this.groupNumber
+            groupNumber = viewer.groupNumber
         }
 
         const args = {}
@@ -176,7 +176,7 @@ class Upload{
     
     newGroup_Click = () => {
 
-        this.groupNumber = 0;
+        viewer.groupNumber = 0;
         heatmapView.style.display = 'none'
 
         const buttons = document.querySelectorAll('.groupButton');
@@ -190,10 +190,10 @@ class Upload{
 
         let button
 
-        if (this.groupNumber == 0){
+        if (viewer.groupNumber == 0){
             button = this.init_GroupButton()
         }else{
-            button = groupButtonContainer.children[this.groupNumber-1]
+            button = groupButtonContainer.children[viewer.groupNumber-1]
         }
 
         if (uploadData.wavelets){            
@@ -216,7 +216,7 @@ class Upload{
         button.className   = 'groupButton';
         button.groupNumber = container.children.length
         button.textContent = 'Group ' + button.groupNumber
-        this.groupNumber   = button.groupNumber
+        viewer.groupNumber = button.groupNumber
 
         container.lastElementChild.classList.remove('active');
 
@@ -238,9 +238,7 @@ class Upload{
 
 
     click_GroupButton = async (button) => {
-
-        this.groupNumber = button.groupNumber
-        
+      
         const buttons = groupButtonContainer.querySelectorAll('*');
         
         let data
@@ -256,8 +254,10 @@ class Upload{
         }
         
         button.classList.add('active');
-                                                            
+        
+        viewer.groupNumber = button.groupNumber
         viewer.view_Trials(data)
+
     }
 }
 

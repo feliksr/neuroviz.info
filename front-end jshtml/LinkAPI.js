@@ -217,9 +217,14 @@ class LinkAPI{
     }
 
     delete_GroupNumbers(){
+
+        document.querySelectorAll('.groupButton')
+                .forEach(button =>
+                    button.classList.remove('active')
+            )
+
         fetch(this.url + 'delete', {
             method: 'POST'
         })
     }
-
 }

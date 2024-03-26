@@ -150,26 +150,29 @@ def run_ANOVA():
     LFPs_time     = cache.get('LFPs_time')
     wavelets_time = cache.get('wavelets_time')
     wavelets_freq = cache.get('wavelets_freq')
-    wavelets_data = cache.get('wavelets_data')
-    PCA_data      = cache.get('PCA_data')
 
     groupNumber = json_data['groupNumber']
     bonfCorrect = json_data['bonfCorrect']
-    PCA_adjust  = json_data['PCAadjust']
+    PCA_reduce  = json_data['PCAreduce']
+
+    if not cache.get('groupNumbers'):
+        cache.set('groupNumbers', [], timeout = timeout)
 
     groupNumbers = cache.get('groupNumbers')
     if groupNumber not in groupNumbers:
         groupNumbers.append(groupNumber)
         cache.set('groupNumbers', groupNumbers, timeout = timeout)
+    print('ANOVA', groupNumbers)
     
-    if PCA_adjust:
-        wavelets = PCA_data
-    else:
-        wavelets = wavelets_data
+    wavelets = cache.get('wavelets_data')
 
     if wavelets and sum(wavelets[i] is not None for i in groupNumbers) > 1:
         
-        wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
+        if PCA_reduce:
+            wavelets_arrays  = cache.get('PCA_data')
+        else:
+            wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
+        
         wavelets_shapeWavelet = wavelets_arrays[0].shape[1:]
 
         wavelets_pVals = np.empty(wavelets_shapeWavelet)
@@ -246,7 +249,7 @@ def run_PCA():
     if groupNumber not in groupNumbers:
         groupNumbers.append(groupNumber)
         cache.set('groupNumbers', groupNumbers, timeout = timeout)    
-    
+
     if baseCorrect == True:
         wavelets_arrays = [wavelets[i]*wavelets_freq[None,:,None] for i in groupNumbers if wavelets[i] is not None]
     else:
@@ -289,20 +292,13 @@ def run_PCA():
 
     wavelets_split = np.split(wavelets_PCA_reconstructed, splits)
     
-    wavelets_PCA_group = wavelets_split[groupNumbers.index(groupNumber)]
-    wavelets_PCA_group_shape = wavelets_shape[groupNumbers.index(groupNumber)]
+    PCA_data = [wavelet.reshape(wavelets_shape[index]) for index, wavelet in enumerate(wavelets_split)]
+    cache.set('PCA_data', PCA_data, timeout= timeout)
 
-    wavelets_data = wavelets_PCA_group.reshape(wavelets_PCA_group_shape)
+    wavelets_data = PCA_data[groupNumbers.index(groupNumber)]
 
     wavelets_mean = np.expand_dims(np.mean(wavelets_data,axis=0),axis=0)
-
-    if not cache.get('PCA_data'):
-        cache.set('PCA_data', [None] * 10, timeout = timeout)
-        
-    PCA_arrays = cache.get('PCA_data')
-    PCA_arrays[groupNumber] = wavelets_data
-    cache.set('PCA_data', PCA_arrays, timeout= timeout)
-
+    
     return jsonify({
         "wavelets_data"  : json.dumps(wavelets_data.tolist()),
         "wavelets_mean"  : json.dumps(wavelets_mean.tolist()),
@@ -454,8 +450,9 @@ def clear_Cache():
 @limiter.exempt()
 def delete_groupNumbers():
     cache.delete('groupNumbers')
+    cache.delete('PCA_data')
     print('deleted numbers')
-    return 'deleted numbers'
+    return 'deleted group numbers and PCA_data'
 
 @application.route('/api/health', methods=['GET'])
 @limiter.exempt()

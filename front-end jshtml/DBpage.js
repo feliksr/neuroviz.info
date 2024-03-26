@@ -52,11 +52,9 @@ class DBpage{
 
     
     async init_GroupButtons() {
-
-        let container = this.groupButtonContainer
-        
-        while (container.firstChild){
-            container.removeChild(container.firstChild)
+      
+        while (groupButtonContainer.firstChild){
+            groupButtonContainer.removeChild(groupButtonContainer.firstChild)
         }
 
         let params = new URLSearchParams(window.location.search);
@@ -72,8 +70,8 @@ class DBpage{
             groupButton.textContent = str;
             groupButton.group = str
             groupButton.stimGroup = stimGroup
-            container.appendChild(groupButton)
-            groupButton.groupNumber = container.children.length
+            groupButtonContainer.appendChild(groupButton)
+            groupButton.groupNumber = groupButtonContainer.children.length
 
             this.set_GroupButtonClick(groupButton)
         });
@@ -106,7 +104,6 @@ class DBpage{
         })
     }
     
-
     async set_GroupButtonData(button){
                
         if (!this.chanNumbers){
@@ -121,7 +118,7 @@ class DBpage{
         button.chanLabels = this.chanLabels;
         
         if (!button.wavelets){
-                        
+
             const responseData = await dataLink.get_Data(button,this.channelIdx);
             const data = dataLink.parse_Data(responseData)
             button.wavelets = data.wavelets
@@ -149,8 +146,7 @@ class DBpage{
 
 
     set_ChannelSelect(){
-   
-        
+           
         this.chanNumbers.forEach((number, index) => {
             const channel = document.createElement('option');
             channel.innerHTML = 'Channel #' + number + '&nbsp;&nbsp;&nbsp;&nbsp;' + this.chanLabels[index];

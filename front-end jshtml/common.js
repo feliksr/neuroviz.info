@@ -10,7 +10,7 @@ class Elements{
         const ids = [
             'buttonANOVA', 'buttonMean', 'buttonBaseline', 'buttonPCA', 'buttonBonf',
             'heatmapView', 'containers', 'sliderElements', 'container4',
-            'computeButtonsDiv', 'formPCA'
+            'computeButtonsDiv', 'formPCA', 'compEnd', 'compStart'
         ]
 
         ids.forEach(id => {
@@ -105,28 +105,24 @@ class Elements{
             button.classList.toggle('active')
             button.active = button.classList.contains('active')
 
-            buttonBaseline.disabled = buttonANOVA.active
+            buttonBaseline.disabled = buttonANOVA.active && !buttonPCA.active
             buttonMean.disabled = buttonANOVA.active
-            // buttonPCA.disabled = buttonANOVA.active
-            // buttonANOVA.disabled = buttonPCA.active
-                
-            document.querySelectorAll('.groupButton')
-                .forEach(button =>
-                    button.classList.remove('active')
-            )
+            
+            if (button === buttonANOVA && buttonPCA.active){
+                let pass
+            } else {
+                dataLink.delete_GroupNumbers()
+            }
 
             const buttonNew = document.getElementById('buttonNew')
-
             if (buttonNew){       
-                buttonNew.disabled = button.active;
+                buttonNew.disabled = buttonPCA.active || buttonANOVA.active;
             }
 
             heatmapView.style.visibility    = 'hidden'
             containers.style.visibility     = 'hidden'
             container4.style.visibility     = 'hidden'
             sliderElements.style.visibility = 'hidden'
-
-            dataLink.delete_GroupNumbers()
         })
     }
 
@@ -145,7 +141,7 @@ class Elements{
             button.classList.toggle('active')
             button.active = button.classList.contains('active')
 
-            buttonANOVA.disabled = buttonBaseline.active || buttonMean.active || buttonPCA.active
+            buttonANOVA.disabled = buttonMean.active || (buttonBaseline.active && !buttonPCA.active)
 
             document.querySelectorAll('.groupButton').forEach(btn => {
                 if (btn.classList.contains('active') && !buttonANOVA.active && !buttonPCA.active){
@@ -157,13 +153,18 @@ class Elements{
     
     async run_ANOVA(button,dataLink){
         
+        if (buttonPCA.active){
+            await this.run_PCA(button,dataLink)
+        }
+
         const args = {
             "url": 'ANOVA'
         }
 
         args.formData = {
             "groupNumber" : button.groupNumber,
-            "bonfCorrect"  : buttonBonf.active
+            "bonfCorrect" : buttonBonf.active,
+            'PCAreduce'   : buttonPCA.active
         }
 
         const response = await dataLink.upload_Data(args)
@@ -172,10 +173,8 @@ class Elements{
     }
 
     async run_PCA(button,dataLink){
-        const compStart = document.getElementById('compStart')
-        const compEnd = document.getElementById('compEnd')
 
-        if (compStart && compEnd && compStart.value>compEnd.value){
+        if (compStart.value>compEnd.value){
             const start  = compStart.value
             const end = compEnd.value
             compEnd.value = start

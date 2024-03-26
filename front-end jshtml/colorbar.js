@@ -39,11 +39,11 @@ class Colorbar {
             .domain([0, this.heatmap.maxPower])
             .range([this.heatmap.heightSVG, 0])
         
-        if (document.getElementById('buttonPCA').active) {
-            this.colorbarScale.domain([-this.heatmap.maxPower, this.heatmap.maxPower])
-        } else if (document.getElementById('buttonANOVA').active){
+        if (document.getElementById('buttonANOVA').active){
             this.colorbarScale.domain([this.heatmap.maxPower, 0])
             this.colorbarScale.range([0, this.heatmap.heightSVG])
+        } else if (document.getElementById('buttonPCA').active) {
+            this.colorbarScale.domain([-this.heatmap.maxPower, this.heatmap.maxPower])
         }
     }
 
@@ -60,6 +60,7 @@ class Colorbar {
     set_ColorbarDragging(waveletTrials) {
         let lastY = null;
         const scalingFactor = .1
+        
         const dragged = () => {
             const currentY = d3.event.y; 
             
@@ -67,7 +68,7 @@ class Colorbar {
             if (lastY !== null) {
                 deltaY = (currentY - lastY) * scalingFactor
             }
-            console.log(deltaY)
+
             if (document.getElementById('buttonANOVA').active){
                 const maxPower = this.colorbarScale.invert(deltaY);
                 this.heatmap.colorScale.domain([maxPower, 0])
@@ -76,7 +77,6 @@ class Colorbar {
                 const maxPower = this.colorbarScale.invert(deltaY);
                 this.heatmap.colorScale.domain([-maxPower, 0, maxPower])
                 this.colorbarScale.domain([-maxPower, maxPower])
-            
             
             } else {
                 const maxPower = this.colorbarScale.invert(deltaY);

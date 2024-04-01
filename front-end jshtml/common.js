@@ -10,7 +10,7 @@ class Elements{
         const ids = [
             'buttonANOVA', 'buttonMean', 'buttonBaseline', 'buttonPCA', 'buttonBonf',
             'heatmapView', 'containers', 'sliderElements', 'container4',
-            'computeButtonsDiv', 'formPCA', 'compEnd', 'compStart'
+            'computeButtonsDiv', 'formPCA', 'compEnd', 'compStart', 'accuracy'
         ]
 
         ids.forEach(id => {
@@ -207,6 +207,8 @@ class Elements{
         const data = dataLink.parse_Data(response)
         compEnd.value = response.componentEnd
         compStart.value = response.componentStart
+        accuracy.textContent = `Decoding Accuracy (SVM): ${response.accuracy}%`
+
         return data
     }
     

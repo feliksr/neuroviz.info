@@ -8,8 +8,13 @@ import scipy.stats as stats
 
 from werkzeug.utils import secure_filename 
 from scipy.io import loadmat
+
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_caching import Cache
@@ -256,6 +261,7 @@ def run_PCA():
         wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
 
     wavelets_shape  = [wavelets.shape for wavelets in wavelets_arrays]
+    wavelets_trials = [shape[0] for shape in wavelets_shape] 
 
     wavelets_PCA_matrix = [wavelet.reshape(wavelet.shape[0], -1) for wavelet in wavelets_arrays]
 
@@ -280,13 +286,24 @@ def run_PCA():
         componentEnd = json_data['componentEnd']
 
     wavelets_PCA_components = wavelets_PCA[:, componentStart:componentEnd]
+    
+    accuracy = []
+    if len(wavelets_trials)>1:
+        target_names = [f'target{i+1}' for i in range(len(wavelets_trials))] 
+        target_list = [target for num, target in zip(wavelets_trials, target_names) for _ in range(num)]
+        X_train, X_test, y_train, y_test = train_test_split(wavelets_PCA_components, target_list, test_size=0.2)
+        mdl = SVC(kernel='linear') 
 
-    components_selected = pca.components_[componentStart:componentEnd]
+        mdl.fit(X_train, y_train)
+
+        y_pred = mdl.predict(X_test)
+        accuracy = int(accuracy_score(y_test, y_pred) * 100)
+        print(accuracy)
+
+    components_selected = pca.components_[componentStart:componentEnd] 
     wavelets_PCA_mean = pca.mean_
 
     wavelets_PCA_reconstructed = np.dot(wavelets_PCA_components, components_selected) + wavelets_PCA_mean
-
-    wavelets_trials = [shape[0] for shape in wavelets_shape] 
     
     splits = np.cumsum(wavelets_trials[:-1])
 
@@ -305,7 +322,8 @@ def run_PCA():
         "wavelets_freq"  : wavelets_freq.tolist(),
         "wavelets_time"  : wavelets_time.tolist(),
         "componentStart" : componentStart+1,
-        "componentEnd"   : componentEnd
+        "componentEnd"   : componentEnd,
+        "accuracy"       : accuracy
     })
 
 @application.route('/api/stored', methods=['POST'])

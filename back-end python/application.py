@@ -18,19 +18,12 @@ from sklearn.metrics import accuracy_score
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_caching import Cache
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 
 application = Flask(__name__)
 application.config['CACHE_TYPE'] = 'SimpleCache'
 
 cache = Cache(application)
 timeout = 36000
-limiter = Limiter(
-    app=application,
-    key_func=get_remote_address, 
-    default_limits=["3000 per day", "20 per minute"] 
-)
 
 CORS(application)
 
@@ -40,18 +33,18 @@ DB_CONFIG = json.loads(DB_CONFIG_JSON)
 
 class Database:
 
-    def get_chans(self, subject, run, stimGroup, category):
+    def get_chans(self, subject, run, stimGroup):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
 
         query = """
-        SELECT a.channelNumber, a.channelLabel
+        SELECT DISTINCT a.channelNumber, a.channelLabel
         FROM arrays a
         JOIN sessions s ON a.session = s.session
-        WHERE a.trial = %s AND s.subject = %s AND s.run = %s AND s.stimGroup = %s AND s.category = %s
+        WHERE a.trial = %s AND s.subject = %s AND s.run = %s AND s.stimGroup = %s
         """
-        cursor.execute(query, (1, subject, run, stimGroup, category))
+        cursor.execute(query, (1, subject, run, stimGroup))
         chans = cursor.fetchall()
 
         cursor.close()
@@ -129,21 +122,18 @@ def get_chans():
     args = request.json
     
     subject = args.get('subject')
-    category = args.get('group')
     stimGroup=args.get('stimGroup')
     run = args.get('run')
 
     db = Database()
-    chanNumbers, chanLabels = db.get_chans(subject, run, stimGroup, category)
+    chanNumbers, chanLabels = db.get_chans(subject, run, stimGroup)
 
     return jsonify({
         "chanNumbers": chanNumbers,
         "chanLabels" : chanLabels
     })
 
-
 @application.route('/api/ANOVA', methods= ['POST'])
-@limiter.exempt()
 def run_ANOVA():
     LFPs_ANOVA     = None
     wavelets_ANOVA = None
@@ -237,7 +227,6 @@ def run_ANOVA():
     return jsonify(data_ANOVA)
 
 @application.route('/api/PCA', methods= ['POST'])
-@limiter.exempt()
 def run_PCA():
     json_data   = json.loads(request.form['jsonData'])
     groupNumber = json_data['groupNumber']
@@ -383,7 +372,6 @@ def serve_data():
         "LFPs_time"      : LFPs_time.tolist()
     })
 
-
 @application.route('/api/uploadWavelet', methods=['POST'])
 def upload_Wavelet():
     json_data   = json.loads(request.form['jsonData'])
@@ -458,14 +446,12 @@ def upload_LFP():
     })
 
 @application.route('/api/clear', methods=['POST'])
-@limiter.exempt()
 def clear_Cache():
     cache.clear()
     print('cleared cache')
     return 'cleared cache'
 
 @application.route('/api/delete', methods=['POST'])
-@limiter.exempt()
 def delete_groupNumbers():
     cache.delete('groupNumbers')
     cache.delete('PCA_data')
@@ -473,6 +459,5 @@ def delete_groupNumbers():
     return 'deleted group numbers and PCA_data'
 
 @application.route('/api/health', methods=['GET'])
-@limiter.exempt()
 def health_check():
     return jsonify({'status': 'healthy'}), 200

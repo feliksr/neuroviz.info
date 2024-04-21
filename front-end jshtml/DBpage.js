@@ -46,13 +46,12 @@ class DBpage{
             
             xAxisLabel.textContent = 'Time from button-press response (sec)'
         })
-
-        .catch(error => console.error('Error:', error));
     }
 
     
     async init_GroupButtons() {
-      
+        
+        //removes groupbuttons in order to reinitialize
         while (groupButtonContainer.firstChild){
             groupButtonContainer.removeChild(groupButtonContainer.firstChild)
         }
@@ -61,30 +60,36 @@ class DBpage{
 
         let stimGroup = params.get('params');
 
-        let allGroups  = this.groupTypes[stimGroup];
+        let category  = this.groupTypes[stimGroup];
 
-        allGroups.forEach(str => {
-            
-            let groupButton = document.createElement('button');
-            groupButton.className = 'groupButton';
+        if (!this.chanNumbers){
+            const chans      = await dataLink.get_Chans(stimGroup)
+            this.chanNumbers = chans.chanNumbers;
+            this.chanLabels  = chans.chanLabels;
+            this.set_ChannelSelect()
+        }
+        
+        for (const str of category) {
+            let groupButton = document.createElement('button'); // Creates a group button
+            groupButton.className = 'groupButton'; 
             groupButton.textContent = str;
-            groupButton.group = str
-            groupButton.stimGroup = stimGroup
-            groupButtonContainer.appendChild(groupButton)
-            groupButton.groupNumber = groupButtonContainer.children.length
-
-            this.set_GroupButtonClick(groupButton)
-        });
-    }
+            groupButton.group = str;
+            groupButton.stimGroup = stimGroup;
+            groupButtonContainer.appendChild(groupButton);
+            groupButton.groupNumber = groupButtonContainer.children.length;
+            
+            await this.set_GroupButtonData(groupButton);
+        
+            this.set_GroupButtonClick(groupButton);
+        }
+    }  
 
     
     set_GroupButtonClick(button){
 
         button.addEventListener('click', async () => {
             const buttons = groupButtonContainer.querySelectorAll('*');
-                
-            await this.set_GroupButtonData(button)
-            
+                            
             let data
 
             if (buttonANOVA.active) {
@@ -104,16 +109,9 @@ class DBpage{
         })
     }
     
+
     async set_GroupButtonData(button){
                
-        if (!this.chanNumbers){
-
-            const chans      = await dataLink.get_Chans(button)
-            this.chanNumbers = chans.chanNumbers;
-            this.chanLabels  = chans.chanLabels;
-            this.set_ChannelSelect()
-        } 
-        
         button.chanNumbers =  this.chanNumbers;
         button.chanLabels = this.chanLabels;
         
@@ -124,7 +122,6 @@ class DBpage{
             button.wavelets = data.wavelets
             button.LFPs = data.LFPs
         }
-
     }
 
     set_ChannelButtons(){

@@ -8,6 +8,7 @@ import scipy.stats as stats
 
 from werkzeug.utils import secure_filename 
 from scipy.io import loadmat
+from easydict import EasyDict
 
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -17,34 +18,56 @@ from sklearn.metrics import accuracy_score
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_caching import Cache
 
 application = Flask(__name__)
-application.config['CACHE_TYPE'] = 'SimpleCache'
-
-cache = Cache(application)
-timeout = 36000
 
 CORS(application)
 
 DB_CONFIG_JSON = os.environ.get('DB_CONFIG')
 DB_CONFIG = json.loads(DB_CONFIG_JSON)
 
+class DataCache:
+    
+    @staticmethod
+    def init():
+
+        DataCache.wavelets = EasyDict({
+            'data' : {},
+            'time' : None,
+            'freq' : None,
+        })
+
+        DataCache.LFPs  = EasyDict({
+            'data' : {},
+            'time' : None,
+        })
+
+        DataCache.groups = []
+        DataCache.pca = None
+
+    @staticmethod
+    def init_Wavelets(group):
+        DataCache.wavelets.data[group] = {} 
+
+    @staticmethod
+    def init_LFPs(group):
+        DataCache.LFPs.data[group] = {}
+        
 
 class Database:
 
-    def get_chans(self, subject, run, stimGroup):
+    def get_chans(self, subject, run, category, group):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
 
         query = """
-        SELECT DISTINCT a.channelNumber, a.channelLabel
+        SELECT a.channelNumber, a.channelLabel
         FROM arrays a
         JOIN sessions s ON a.session = s.session
-        WHERE a.trial = %s AND s.subject = %s AND s.run = %s AND s.stimGroup = %s
+        WHERE a.trial = %s AND s.subject = %s AND s.run = %s AND s.stimGroup = %s AND s.category = %s
         """
-        cursor.execute(query, (1, subject, run, stimGroup))
+        cursor.execute(query, (1, subject, run, category,group))
         chans = cursor.fetchall()
 
         cursor.close()
@@ -56,9 +79,7 @@ class Database:
         return chanNumbers, chanLabels
 
 
-    def get_trialData(self, channel, 
-                      subject, run, 
-                      stimGroup, category):
+    def get_trialData(self, channel, subject, run, category, group):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("USE my_new_database")
@@ -69,9 +90,8 @@ class Database:
         JOIN sessions s ON a.session = s.session
         WHERE a.channelNumber = %s AND s.subject = %s AND s.run = %s AND s.stimGroup = %s AND s.category = %s
         """
-        cursor.execute(query, (channel, subject, run, stimGroup, category))
-        channelArrays = []
-
+        cursor.execute(query, (channel, subject, run, category, group))
+        arrays = []
 
         for LFP_data, wavelet_data, timeStart, timeStop, freqScale, xBinsWavelet, yBinsWavelet in cursor.fetchall():
             
@@ -84,7 +104,7 @@ class Database:
             with np.load(LFPbuffer,  allow_pickle=True) as f:
                 LFParray = f['arr_0'] 
             
-            channelArrays.append({
+            arrays.append({
                 "LFPs": LFParray,
                 "wavelets": waveletArray
             })
@@ -94,21 +114,21 @@ class Database:
     
         freqScale_list = json.loads(freqScale)
 
-        return channelArrays, timeStart, timeStop, freqScale_list, xBinsWavelet, yBinsWavelet
+        return arrays, timeStart, timeStop, freqScale_list, xBinsWavelet, yBinsWavelet
 
 
 class Upload:
-    def upload(self,request):
+    def upload(self,file):
 
-        filename = secure_filename(request.filename)  
+        filename = secure_filename(file.filename)  
         path, extension = os.path.splitext(filename)   
         extension = extension.lower()          
 
         if extension == '.npy':
-            data = np.load(request, allow_pickle=False).astype(np.int32)
+            data = np.load(file, allow_pickle=False).astype(np.int32)
 
         elif extension == '.mat':
-            mat_content = io.BytesIO(request.read())
+            mat_content = io.BytesIO(file.read())
             mat_data = loadmat(mat_content)
             data = (mat_data[path]).astype(np.int32)
         else:
@@ -121,342 +141,372 @@ class Upload:
 def get_chans():
     args = request.json
     
-    subject = args.get('subject')
-    stimGroup=args.get('stimGroup')
-    run = args.get('run')
+    subject   = args.get('subject')
+    category  = args.get('category')
+    run       = args.get('run')
+    group     = args.get('group')
 
     db = Database()
-    chanNumbers, chanLabels = db.get_chans(subject, run, stimGroup)
+    chanNumbers, chanLabels = db.get_chans(subject, run, category,group)
 
     return jsonify({
         "chanNumbers": chanNumbers,
         "chanLabels" : chanLabels
     })
 
+
 @application.route('/api/ANOVA', methods= ['POST'])
 def run_ANOVA():
-    LFPs_ANOVA     = None
-    wavelets_ANOVA = None
-    data_ANOVA     = {}
+    args         = request.json
+    currentGroup = args.get('group')
+    channel      = args.get('channel')
+    bonfCorrect  = args.get('bonfCorrect')
+    PCA_reduce   = args.get('PCAreduce')
+
+    groups = DataCache.groups
+    wavelets = DataCache.wavelets
     
-    json_data   = json.loads(request.form['jsonData'])
+    data_ANOVA = {}
+
+    if currentGroup not in groups:
+        groups.append(currentGroup)
     
-    LFPs          = cache.get('LFPs_data')
-    LFPs_time     = cache.get('LFPs_time')
-    wavelets_time = cache.get('wavelets_time')
-    wavelets_freq = cache.get('wavelets_freq')
+    waveletsArrays = None
 
-    groupNumber = json_data['groupNumber']
-    bonfCorrect = json_data['bonfCorrect']
-    PCA_reduce  = json_data['PCAreduce']
-
-    if not cache.get('groupNumbers'):
-        cache.set('groupNumbers', [], timeout = timeout)
-
-    groupNumbers = cache.get('groupNumbers')
-    if groupNumber not in groupNumbers:
-        groupNumbers.append(groupNumber)
-        cache.set('groupNumbers', groupNumbers, timeout = timeout)
-    print('ANOVA', groupNumbers)
-    
-    wavelets = cache.get('wavelets_data')
-
-    if wavelets and sum(wavelets[i] is not None for i in groupNumbers) > 1:
+    if PCA_reduce:
+        waveletsArrays  = DataCache.pca
         
-        if PCA_reduce:
-            wavelets_arrays  = cache.get('PCA_data')
-        else:
-            wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
-        
-        wavelets_shapeWavelet = wavelets_arrays[0].shape[1:]
+    elif currentGroup in wavelets.data and channel in wavelets.data[currentGroup]:
+        waveletsArrays = []
+        for group in groups:
+            if group in wavelets.data and channel in wavelets.data[group]:
+                waveletsArrays.append(wavelets.data[group][channel])  
 
-        wavelets_pVals = np.empty(wavelets_shapeWavelet)
-        for row in range(wavelets_shapeWavelet[0]):
-            for column in range(wavelets_shapeWavelet[1]):
-                values = [wavelet[:, row, column] for wavelet in wavelets_arrays]
+    if waveletsArrays is not None and len(waveletsArrays)>1:
+        waveletsShape = waveletsArrays[0].shape[1:]
+
+        waveletsPvals = np.empty(waveletsShape)
+        for row in range(waveletsShape[0]):
+            for column in range(waveletsShape[1]):
+                values = [wavelet[:, row, column] for wavelet in waveletsArrays]
                 _, pVal = stats.f_oneway(*values)
 
                 if bonfCorrect == True:
-                    numValues = wavelets_shapeWavelet[0]*wavelets_shapeWavelet[1]
+                    numValues = waveletsShape[0]*waveletsShape[1]
                 else:
                     numValues = 1
                 
                 if math.isnan(pVal):
-                    wavelets_pVals[row, column] = 1
+                    waveletsPvals[row, column] = 1
 
                 else:
-                    wavelets_pVals[row, column] = min(pVal * numValues, 1)
+                    waveletsPvals[row, column] = min(pVal * numValues, 1)
 
-        wavelets_ANOVA = np.expand_dims(wavelets_pVals,axis=0)
+        waveletsAnova = np.expand_dims(waveletsPvals,axis=0)
+  
+        data_ANOVA.update({
+            "wavelets_data"  : json.dumps(waveletsAnova.tolist()),
+            "wavelets_freq"  : wavelets.freq.tolist(),
+            "wavelets_time"  : wavelets.time.tolist(),
+        })
       
-    if LFPs and sum(LFPs[i] is not None for i in groupNumbers) > 1:
+    LFPs = DataCache.LFPs
+    LFPsArrays = None
 
-        LFPs_arrays = [LFPs[i] for i in groupNumbers if LFPs[i] is not None]
-        LFPs_shapeLFP = LFPs_arrays[0].shape[1]
+    if currentGroup in LFPs.data and channel in LFPs.data[currentGroup]:
+        LFPsArrays = []
+        for group in groups:
+            if group in LFPs.data and channel in LFPs.data[group]:
+                LFPsArrays.append(LFPs.data[group][channel])  
+    
+    if LFPsArrays is not None and len(LFPsArrays)>1:
+        LFPsShape  = LFPsArrays[0].shape[1]
         
-        LFPs_pVals = np.empty(LFPs_shapeLFP)
-        for row in range(LFPs_shapeLFP):
-            values = [LFP[:,row] for LFP in LFPs_arrays]
+        LFPsPvals = np.empty(LFPsShape)
+        for row in range(LFPsShape):
+            values = [LFP[:,row] for LFP in LFPsArrays]
             _, pVal = stats.f_oneway(*values)
 
             if bonfCorrect == True:
-                numValues = LFPs_shapeLFP
+                numValues = LFPsShape
             else:
                 numValues = 1
 
             if math.isnan(pVal):
-                LFPs_pVals[row] = .99
+                LFPsPvals[row] = .99
             else:
-                LFPs_pVals[row] = min(pVal * numValues, .99)
+                LFPsPvals[row] = min(pVal * numValues, .99)
         
-        LFPs_ANOVA = np.expand_dims(LFPs_pVals,axis=0)  
-    
-    if wavelets_ANOVA is not None:
-        data_ANOVA.update({
-            "wavelets_data" : json.dumps(wavelets_ANOVA.tolist()),
-            "wavelets_freq"  : wavelets_freq.tolist(),
-            "wavelets_time"  : wavelets_time.tolist(),
-        })
+        LFPsAnova = np.expand_dims(LFPsPvals,axis=0)  
 
-    if LFPs_ANOVA is not None:
         data_ANOVA.update({
-            "LFPs_data"      : json.dumps(LFPs_ANOVA.tolist()),
-            "LFPs_time"      : LFPs_time.tolist()
+            "LFPs_data"      : json.dumps(LFPsAnova.tolist()),
+            "LFPs_time"      : LFPs.time.tolist()
         })
 
     return jsonify(data_ANOVA)
 
+
 @application.route('/api/PCA', methods= ['POST'])
 def run_PCA():
-    json_data   = json.loads(request.form['jsonData'])
-    groupNumber = json_data['groupNumber']
-    baseCorrect = json_data['baseCorrect']
 
-    wavelets_time = cache.get('wavelets_time')
-    wavelets_freq = cache.get('wavelets_freq') 
-    wavelets      = cache.get('wavelets_data')
+    args         = request.json
+    currentGroup = args.get('group')
+    channel      = args.get('channel')
+    baseCorrect  = args.get('baseCorrect')
 
-    if not cache.get('groupNumbers'):
-        cache.set('groupNumbers', [], timeout = timeout)
+    wavelets = DataCache.wavelets
+    groups   = DataCache.groups
+
+    if currentGroup not in groups:
+        groups.append(currentGroup)
     
-    groupNumbers = cache.get('groupNumbers')
-    if groupNumber not in groupNumbers:
-        groupNumbers.append(groupNumber)
-        cache.set('groupNumbers', groupNumbers, timeout = timeout)    
+    arrays = []
+    pcaGroups = []
+    for group in groups:
+        if group in wavelets.data and channel in wavelets.data[group]:
+            if baseCorrect == True:
+                arrays.append(wavelets.data[group][channel]*wavelets.freq[None,:,None])
+            else:
+                arrays.append(wavelets.data[group][channel]) 
+            pcaGroups.append(group) 
 
-    if baseCorrect == True:
-        wavelets_arrays = [wavelets[i]*wavelets_freq[None,:,None] for i in groupNumbers if wavelets[i] is not None]
-    else:
-        wavelets_arrays = [wavelets[i] for i in groupNumbers if wavelets[i] is not None]
+    shapes = [wavelets.shape for wavelets in arrays]
+    trials = [wavelet.shape[0] for wavelet in arrays] 
 
-    wavelets_shape  = [wavelets.shape for wavelets in wavelets_arrays]
-    wavelets_trials = [shape[0] for shape in wavelets_shape] 
+    pcaMatrix = [wavelet.reshape(wavelet.shape[0], -1) for wavelet in arrays]
 
-    wavelets_PCA_matrix = [wavelet.reshape(wavelet.shape[0], -1) for wavelet in wavelets_arrays]
-
-    wavelets_PCA_stacked = np.concatenate(wavelets_PCA_matrix, axis=0)
+    pcaStacked = np.concatenate(pcaMatrix, axis=0)
 
     scaler = StandardScaler()
-    wavelets_PCA_scaled = scaler.fit_transform(wavelets_PCA_stacked)
+    pcaScaled = scaler.fit_transform(pcaStacked)
     pca = PCA() 
-    wavelets_PCA = pca.fit_transform(wavelets_PCA_scaled)
+    pcaFit = pca.fit_transform(pcaScaled)
     maxComponents = (pca.components_.shape[0])
     
-    if not json_data['componentStart']:
+    if not args.get('componentStart'):
         componentStart = 0
-    elif json_data['componentStart']>maxComponents:
+    elif args.get('componentStart') > maxComponents:
         componentStart = maxComponents
     else :
-        componentStart = json_data['componentStart']-1
+        componentStart = args.get('componentStart')-1
 
-    if not json_data['componentEnd'] or json_data['componentEnd']>maxComponents:
+    if not args.get('componentEnd') or args.get('componentEnd') > maxComponents:
         componentEnd = maxComponents
-    elif json_data['componentEnd']:
-        componentEnd = json_data['componentEnd']
+    else:
+        componentEnd = args.get('componentEnd')
 
-    wavelets_PCA_components = wavelets_PCA[:, componentStart:componentEnd]
+    pcaComponents = pcaFit[:, componentStart:componentEnd]
     
     accuracy = []
-    if len(wavelets_trials)>1:
-        target_names = [f'target{i+1}' for i in range(len(wavelets_trials))] 
-        target_list = [target for num, target in zip(wavelets_trials, target_names) for _ in range(num)]
-        X_train, X_test, y_train, y_test = train_test_split(wavelets_PCA_components, target_list, test_size=0.2)
+    if len(trials)>1:
+        targetNames = [f'target{i+1}' for i in range(len(trials))] 
+        targetList  = [target for num, target in zip(trials, targetNames) for _ in range(num)]
+        xTrain, xTest, yTrain, yTest = train_test_split(pcaComponents, targetList, test_size=0.2)
         mdl = SVC(kernel='linear') 
 
-        mdl.fit(X_train, y_train)
+        mdl.fit(xTrain, yTrain)
 
-        y_pred = mdl.predict(X_test)
-        accuracy = int(accuracy_score(y_test, y_pred) * 100)
+        yPred = mdl.predict(xTest)
+        accuracy = int(accuracy_score(yTest, yPred) * 100)
         print(accuracy)
 
-    components_selected = pca.components_[componentStart:componentEnd] 
-    wavelets_PCA_mean = pca.mean_
+    componentSelected = pca.components_[componentStart:componentEnd] 
+    pcaMean   = pca.mean_
 
-    wavelets_PCA_reconstructed = np.dot(wavelets_PCA_components, components_selected) + wavelets_PCA_mean
+    pcaReconstructed = np.dot(pcaComponents, componentSelected) + pcaMean
     
-    splits = np.cumsum(wavelets_trials[:-1])
+    splits = np.cumsum(trials[:-1])
 
-    wavelets_split = np.split(wavelets_PCA_reconstructed, splits)
+    split = np.split(pcaReconstructed, splits)
     
-    PCA_data = [wavelet.reshape(wavelets_shape[index]) for index, wavelet in enumerate(wavelets_split)]
-    cache.set('PCA_data', PCA_data, timeout= timeout)
-
-    wavelets_data = PCA_data[groupNumbers.index(groupNumber)]
-
-    wavelets_mean = np.expand_dims(np.mean(wavelets_data,axis=0),axis=0)
+    DataCache.pca = [wavelet.reshape(shapes[idx]) for idx, wavelet in enumerate(split)]# PCA-transformed wavelets from all selected groups 
     
+    pcaWavelets = DataCache.pca[pcaGroups.index(currentGroup)] # PCA-transformed wavelets for currently selected group
+
+    pcaWaveletsMean = np.expand_dims(np.mean(pcaWavelets,axis=0),axis=0)
+
     return jsonify({
-        "wavelets_data"  : json.dumps(wavelets_data.tolist()),
-        "wavelets_mean"  : json.dumps(wavelets_mean.tolist()),
-        "wavelets_freq"  : wavelets_freq.tolist(),
-        "wavelets_time"  : wavelets_time.tolist(),
+        "wavelets_data"  : json.dumps(pcaWavelets.tolist()),
+        "wavelets_mean"  : json.dumps(pcaWaveletsMean.tolist()),
+        "wavelets_freq"  : wavelets.freq.tolist(),
+        "wavelets_time"  : wavelets.time.tolist(),
         "componentStart" : componentStart+1,
         "componentEnd"   : componentEnd,
         "accuracy"       : accuracy
     })
 
-@application.route('/api/stored', methods=['POST'])
-def serve_data():
-    args        = request.json
-    subject     = args.get('subject')
-    group       = args.get('group')
-    stimGroup   = args.get('stimGroup')
-    channel     = args.get('channel')
-    run         = args.get('run')
-    groupNumber = args.get('groupNumber')
+
+@application.route('/api/cacheCheck', methods = ['POST'])
+def check_Cache():
+
+    LFPsData = None
+    waveletsData = None
+
+    args     = request.json
+    group    = args.get('group')
+    channel  = args.get('channel')
+
+    wavelets = DataCache.wavelets
+    LFPs     = DataCache.LFPs
     
+    if group in wavelets.data and channel in wavelets.data[group]:
+        waveletsData = wavelets.data[group][channel]
+        waveletsMean = np.expand_dims(np.mean(waveletsData,axis=0),axis=0)
+
+    if group in LFPs.data and channel in LFPs.data[group]:
+        LFPsData = LFPs.data[group][channel]
+        LFPsMean = np.expand_dims(np.mean(LFPsData,axis=0),axis=0)
+    
+    returnData = {}
+
+    if LFPsData is None and waveletsData is None:
+        returnData.update({
+            "LFPs_data"     : None,
+            "wavelets_data" : None
+        })
+            
+    if LFPsData is not None:
+        returnData.update({
+            "LFPs_data" : json.dumps(LFPsData.tolist()),
+            "LFPs_mean" : json.dumps(LFPsMean.tolist()),
+            "LFPs_time" : LFPs.time.tolist(),
+        })
+
+    if waveletsData is not None:
+        returnData.update({
+            "wavelets_data" : json.dumps(waveletsData.tolist()),
+            "wavelets_mean" : json.dumps(waveletsMean.tolist()),
+            "wavelets_time" : wavelets.time.tolist(),
+            "wavelets_freq" : wavelets.freq.tolist(),
+        })
+        
+    return jsonify(returnData)
+
+
+@application.route('/api/dbData', methods=['POST'])
+def get_data():
+    args     = request.json
+    subject  = args.get('subject')
+    group    = args.get('group')
+    category = args.get('category')
+    channel  = args.get('channel')
+    run      = args.get('run')
+
     db = Database()
     arrayList, timeStart, timeStop, freqScale, xBins, yBins = db.get_trialData(
-        channel, subject, run, stimGroup, group)
+        channel, subject, run, category, group
+    )
     
     decompressedLFP     = [item["LFPs"] for item in arrayList]
     decompressedWavelet = [item["wavelets"] for item in arrayList]
     reshapedWaveletData = [arr.reshape(xBins, yBins) for arr in decompressedWavelet]
         
-    LFPs_data     = np.stack(decompressedLFP, axis=-1).transpose(1,0)
-    wavelets_data = np.stack(reshapedWaveletData, axis=-1).transpose(2,0,1)
-
-    wavelets_mean = np.expand_dims(np.mean(wavelets_data,axis=0),axis=0)
-
-    LFPs_mean     = np.expand_dims(np.mean(LFPs_data,axis=0),axis=0)
+    LFPsData     = np.stack(decompressedLFP, axis=-1).transpose(1,0)
+    waveletsData = np.stack(reshapedWaveletData, axis=-1).transpose(2,0,1)
     
-    wavelets_freq = np.logspace(np.log10(freqScale[0][0]), np.log10(freqScale[-1][0]), wavelets_data.shape[1])
+    wavelets = DataCache.wavelets
+    LFPs     = DataCache.LFPs
 
-    wavelets_time = np.linspace(timeStart,timeStop,wavelets_data.shape[2])
-    LFPs_time     = np.linspace(timeStart,timeStop,LFPs_data.shape[1])
+    LFPs.time     = np.linspace(timeStart,timeStop,LFPsData.shape[1])
+    wavelets.time = np.linspace(timeStart,timeStop,waveletsData.shape[2])
+    wavelets.freq = np.logspace(np.log10(freqScale[0][0]), 
+                                np.log10(freqScale[-1][0]), 
+                                waveletsData.shape[1])
+    
+    if group not in wavelets.data:
+        wavelets.data[group] = {}
+        LFPs.data[group] = {}
 
-  
-    if not cache.get('wavelets_data'):
-        cache.set('LFPs_data', [None] * 10, timeout = timeout)
-        cache.set('wavelets_data', [None] * 10, timeout = timeout)
-        
-    wavelets_arrays = cache.get('wavelets_data')
-    LFPs_arrays     = cache.get('LFPs_data')
+    wavelets.data[group][channel] = waveletsData
+    LFPs.data[group][channel] = LFPsData
+    
+    return jsonify('uploaded data')
 
-    wavelets_arrays[groupNumber] = wavelets_data
-    LFPs_arrays[groupNumber]     = LFPs_data
-
-    cache.set('LFPs_data', LFPs_arrays, timeout = timeout)
-    cache.set('LFPs_time', LFPs_time, timeout = timeout)
-    cache.set('wavelets_data', wavelets_arrays , timeout = timeout)
-    cache.set('wavelets_time', wavelets_time, timeout = timeout)
-    cache.set('wavelets_freq', wavelets_freq, timeout = timeout)
-
-    return jsonify({
-        "wavelets_data"  : json.dumps(wavelets_data.tolist()),
-        "wavelets_mean"  : json.dumps(wavelets_mean.tolist()),
-        "wavelets_freq"  : wavelets_freq.tolist(),
-        "wavelets_time"  : wavelets_time.tolist(),
-        "LFPs_data"      : json.dumps(LFPs_data.tolist()),
-        "LFPs_mean"      : json.dumps(LFPs_mean.tolist()),
-        "LFPs_time"      : LFPs_time.tolist()
-    })
 
 @application.route('/api/uploadWavelet', methods=['POST'])
 def upload_Wavelet():
-    json_data   = json.loads(request.form['jsonData'])
-    timeStart   = json_data['timeStart']
-    timeStop    = json_data['timeStop']
-    freqLow     = json_data['freqLow']
-    freqHigh    = json_data['freqHigh']
-    groupNumber = json_data['groupNumber']
+    json_data = json.loads(request.form['jsonData'])
+    timeStart = json_data['timeStart']
+    timeStop  = json_data['timeStop']
+    freqLow   = json_data['freqLow']
+    freqHigh  = json_data['freqHigh']
+    group     = json_data['group']
+    channel   = json_data['channel']
 
-    wavelets_request = request.files['file']
+    requestFile = request.files['file']
     
     uploads = Upload()
-    wavelets_upload = uploads.upload(wavelets_request)
+    fileUpload = uploads.upload(requestFile)
 
-    wavelets_data = wavelets_upload.transpose(2,0,1)
+    waveletsData = fileUpload.transpose(2,0,1)
 
-    wavelets_mean  = np.expand_dims(
-                            np.mean(wavelets_data,axis=0)
-                                ,axis=0)
-
-    if not cache.get('wavelets_data'):
-        cache.set('wavelets_data', [None] * 10, timeout = timeout)
-        
-    arrays = cache.get('wavelets_data')  
-    arrays[groupNumber] = wavelets_data
-    cache.set('wavelets_data', arrays, timeout= timeout)
+    wavelets = DataCache.wavelets
     
-    wavelets_freq = np.logspace(np.log10(freqLow), np.log10(freqHigh), wavelets_data.shape[1])
-    wavelets_time = np.linspace(timeStart,timeStop,wavelets_data.shape[2])
-    cache.set('wavelets_time', wavelets_time,timeout = timeout)
-    cache.set('wavelets_freq', wavelets_freq, timeout = timeout)
-
-    return jsonify({
-        "wavelets_data"  : json.dumps(wavelets_data.tolist()),
-        "wavelets_mean"  : json.dumps(wavelets_mean.tolist()),
-        "wavelets_freq"  : wavelets_freq.tolist(),
-        "wavelets_time"  : wavelets_time.tolist(),
-    })
+    if group not in wavelets.data:
+        wavelets.data[group] = {}
     
+    wavelets.data[group][channel] = waveletsData
+    wavelets.freq = np.logspace(np.log10(freqLow), np.log10(freqHigh), waveletsData.shape[1])
+    wavelets.time = np.linspace(timeStart,timeStop,waveletsData.shape[2])
+
+    return jsonify('uploaded wavelet')
+
+   
 @application.route('/api/uploadLFP', methods=['POST'])
 def upload_LFP():
     json_data   = json.loads(request.form['jsonData'])
     timeStart   = json_data['timeStart']
     timeStop    = json_data['timeStop']
-    groupNumber = json_data['groupNumber']
+    group       = json_data['group']
+    channel     = json_data['channel']
     
-    LFPs_request = request.files['file']
+    fileRequest = request.files['file']
 
     uploads = Upload()
-    LFPs_upload = uploads.upload(LFPs_request)
+    fileUpload = uploads.upload(fileRequest)
     
-    LFPs_data = LFPs_upload.transpose(1, 0)
-
-    LFPs_mean = np.expand_dims(
-                    np.mean(LFPs_data,axis=0)
-                        ,axis=0)
+    data = fileUpload.transpose(1, 0)
     
-    if not cache.get('LFPs_data'):
-        cache.set('LFPs_data', [None] * 10, timeout = timeout)
-          
-    arrays = cache.get('LFPs_data')
-    arrays[groupNumber] = LFPs_data
-    cache.set('LFPs_data', arrays, timeout= timeout)
+    LFPs = DataCache.LFPs
+    
+    if group not in LFPs.data:
+        LFPs.data[group] = {}
+    LFPs.data[group][channel] = data
+    
+    LFPs.time = np.linspace(timeStart, timeStop, data.shape[1])
 
-    LFPs_time = np.linspace(timeStart,timeStop,LFPs_data.shape[1])
-    cache.set('LFPs_time', LFPs_time,timeout=timeout)
-   
-    return jsonify({
-        "LFPs_data"  : json.dumps(LFPs_data.tolist()),
-        "LFPs_mean"  : json.dumps(LFPs_mean.tolist()),
-        "LFPs_time"  : LFPs_time.tolist()
-    })
+    return jsonify('uploaded LFP')
 
-@application.route('/api/clear', methods=['POST'])
-def clear_Cache():
-    cache.clear()
+
+@application.route('/api/clearAllCache', methods=['POST'])
+def clear_AllCache():
+    DataCache.init()
     print('cleared cache')
-    return 'cleared cache'
+    return jsonify('cleared cache')
 
-@application.route('/api/delete', methods=['POST'])
-def delete_groupNumbers():
-    cache.delete('groupNumbers')
-    cache.delete('PCA_data')
-    print('deleted numbers')
-    return 'deleted group numbers and PCA_data'
+
+@application.route('/api/deleteGroupWavelets', methods = ['POST'])
+def delete_GroupWavelets():
+    args  = request.json
+    group = args.get('group')
+    DataCache.init_Wavelets(group)
+    return jsonify('deleted Group Wavelets')
+
+
+@application.route('/api/deleteGroupLFPs', methods = ['POST'])
+def delete_GroupLFPs():
+    args = request.json
+    group = args.get('group')
+    DataCache.init_LFPs(group)
+    return jsonify('deleted Group LFPs')
+
+
+@application.route('/api/deleteGroupNumbers', methods=['POST'])
+def delete_GroupNumbers():
+    DataCache.groups = []
+    print('deleted group numbers')
+    return jsonify('deleted group numbers')
 
 @application.route('/api/health', methods=['GET'])
 def health_check():

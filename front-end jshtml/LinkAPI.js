@@ -6,53 +6,11 @@ class LinkAPI{
         this.url = 'https://neuroviz.info/api/'
         // this.url = 'http://localhost:5000/api/'
 
-        this.loadingText  = document.getElementById('loadingText')
     }
 
-    async get_Chans(stimGroup){
-
-        this.loadingText.style.display = "block"; 
-
-        const args = {
-            stimGroup: stimGroup,
-            subject  : 'YDX',
-            run      : 1  
-        }
-
-        const chans = await this.fetch_Data(this.url + 'chans', args);
-        this.loadingText.style.display = "none"; 
-
-        return chans
-    }
-
-
-    async get_Data(groupButton,channelIdx) {
-        this.loadingText.style.display = "block"; 
-     
-        const args = {
-            stimGroup   : groupButton.stimGroup,
-            group       : groupButton.group,
-            subject     : 'YDX',
-            channel     : groupButton.chanNumbers[channelIdx],
-            run         : 1,
-            groupNumber : groupButton.groupNumber
-        }       
-
-        let responseData
- 
-        try {
-            responseData = await this.fetch_Data(
-                this.url + 'stored', args)
-                this.loadingText.style.display = "none";
-                return responseData
+    async call(urlSuffix, args) {
         
-        } catch (error) {
-                console.error('Failed to fetch data:', error);
-        }
-    }
-
-    async fetch_Data(url, args) {
-        const response = await fetch(url, {
+        const response = await fetch(this.url + urlSuffix, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
@@ -60,57 +18,25 @@ class LinkAPI{
             body: JSON.stringify(args)
         });
 
-            return response.json()
+        return response.json()
     } 
-    // async fetch_DataWithRetry(url, args, retries, delay) {
-    //     for (let i = 0; i < retries; i++) {
-    //         try {
-    //             const response = await fetch(url, {
-    //                 method: "POST",
-    //                 headers: {
-    //                     'Content-Type': 'application/json'
-    //                 },
-    //                 body: JSON.stringify(args)
-    //             });
-    
-    //             if (response.ok) {
-    //                 return await response.json();  
-    //             } else {
-    //                 throw new Error(`HTTP error: ${response.status}`);
-    //             }
 
-    //         } catch (error) {
-    //             console.error(`Fetch error on attempt ${i + 1}:`, error);
-    //         }
-    
-    //         // Wait and increase delay for next retry
-    //         delay *= 2;
-    //         await new Promise(resolve => setTimeout(resolve, delay));
-    //         console.log(`delay: ${delay}ms`);
 
-    //     }
-    //     throw new Error('Request failed after retries');
-    // }    
+    async upload_File(urlSuffix,args,file) {
+        const formData = new FormData()
 
-    async upload_Data(args) {
-        const formData = new FormData();
-        const params = args.formData
-
-        if (args.file){
-            formData.append('file', args.file);
-        }
+        formData.append('file', file)
+        formData.append('jsonData', JSON.stringify(args))
         
-        formData.append('jsonData', JSON.stringify(params))
-        
-        const response = await fetch(this.url + args.url, {
+        await fetch(this.url + urlSuffix, {
             method: 'POST',
             body: formData
         });
 
-        return response.json();
     }
 
-    convert_LFPsToObjs(LFPs,mean){
+    
+    convert_LFPs2Objs(LFPs,mean){
         let d3LFPs = [];
         let data 
         
@@ -133,7 +59,8 @@ class LinkAPI{
         return d3LFPs
     }
 
-    convert_WaveletsToObjects(wavelets,mean){
+
+    convert_Wavelets2Objs(wavelets,mean){
         let d3Wavelets = [];
         let data
         
@@ -159,6 +86,7 @@ class LinkAPI{
         return d3Wavelets;
     }
 
+
     parse_Data(responseData){
 
         let mean
@@ -175,11 +103,11 @@ class LinkAPI{
             wavelets.trials = wavelets.data.length
             
             wavelets.d3 = {}
-            wavelets.d3.data = this.convert_WaveletsToObjects(
+            wavelets.d3.data = this.convert_Wavelets2Objs(
                 wavelets,mean=false) 
 
             if (wavelets.mean !== null){
-                wavelets.d3.mean = this.convert_WaveletsToObjects(
+                wavelets.d3.mean = this.convert_Wavelets2Objs(
                     wavelets,mean=true)
             }
 
@@ -196,10 +124,10 @@ class LinkAPI{
             LFPs.trials = LFPs.data.length
             
             LFPs.d3 = {}
-            LFPs.d3.data = this.convert_LFPsToObjs(LFPs, mean=false)
+            LFPs.d3.data = this.convert_LFPs2Objs(LFPs, mean=false)
             
             if (LFPs.mean !== null){
-                LFPs.d3.mean = this.convert_LFPsToObjs(
+                LFPs.d3.mean = this.convert_LFPs2Objs(
                     LFPs, mean=true)
             }
                        
@@ -207,23 +135,5 @@ class LinkAPI{
         }
 
         return data
-    }
-
-    clear_Cache(){
-        fetch(this.url + 'clear', {
-            method: 'POST'
-        })          
-    }
-
-    delete_GroupNumbers(){
-
-        document.querySelectorAll('.groupButton')
-                .forEach(button =>
-                    button.classList.remove('active')
-            )
-
-        fetch(this.url + 'delete', {
-            method: 'POST'
-        })
     }
 }

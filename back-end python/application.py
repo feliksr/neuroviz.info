@@ -24,7 +24,8 @@ application = Flask(__name__)
 CORS(application)
 
 DB_CONFIG_JSON = os.environ.get('DB_CONFIG')
-DB_CONFIG = json.loads(DB_CONFIG_JSON)
+if DB_CONFIG_JSON is not None:
+    DB_CONFIG = json.loads(DB_CONFIG_JSON)
 
 class DataCache:
     
@@ -286,14 +287,9 @@ def run_PCA():
     
     if not args.get('componentStart'):
         componentStart = 0
-    elif args.get('componentStart') > maxComponents:
-        componentStart = maxComponents
-    else :
-        componentStart = args.get('componentStart')-1
-
-    if not args.get('componentEnd') or args.get('componentEnd') > maxComponents:
         componentEnd = maxComponents
-    else:
+    elif args.get('componentStart'):
+        componentStart = args.get('componentStart')
         componentEnd = args.get('componentEnd')
 
     pcaComponents = pcaFit[:, componentStart:componentEnd]
@@ -309,7 +305,6 @@ def run_PCA():
 
         yPred = mdl.predict(xTest)
         accuracy = int(accuracy_score(yTest, yPred) * 100)
-        print(accuracy)
 
     componentSelected = pca.components_[componentStart:componentEnd] 
     pcaMean   = pca.mean_
@@ -327,13 +322,13 @@ def run_PCA():
     pcaWaveletsMean = np.expand_dims(np.mean(pcaWavelets,axis=0),axis=0)
 
     return jsonify({
-        "wavelets_data"  : json.dumps(pcaWavelets.tolist()),
-        "wavelets_mean"  : json.dumps(pcaWaveletsMean.tolist()),
-        "wavelets_freq"  : wavelets.freq.tolist(),
-        "wavelets_time"  : wavelets.time.tolist(),
-        "componentStart" : componentStart+1,
-        "componentEnd"   : componentEnd,
-        "accuracy"       : accuracy
+        "wavelets_data" : json.dumps(pcaWavelets.tolist()),
+        "wavelets_mean" : json.dumps(pcaWaveletsMean.tolist()),
+        "wavelets_freq" : wavelets.freq.tolist(),
+        "wavelets_time" : wavelets.time.tolist(),
+        "maxComponents" : maxComponents,
+        "variance"      : [int(var * 100) for var in pca.explained_variance_ratio_],
+        "accuracy"      : accuracy
     })
 
 

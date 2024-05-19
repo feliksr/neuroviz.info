@@ -7,13 +7,13 @@ class homeButtons{
                 window.location.href = 'upload.html'
         })
 
-        this.set_stimGroupButtons();
+        this.set_categoryButtons();
     }
     
-    set_stimGroupButtons(){
-        let stimGroupButton = document.querySelectorAll('.stimGroupButton')
+    set_categoryButtons(){
+        let categoryButton = document.querySelectorAll('.categoryButton')
 
-        stimGroupButton.forEach(button => {
+        categoryButton.forEach(button => {
             button.addEventListener('click', (event) => {
                 let buttonText = event.target.textContent; 
                 window.location.href = 'DBpage.html?params=' + encodeURIComponent(buttonText);

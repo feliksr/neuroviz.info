@@ -18,11 +18,6 @@ body {
     right: 0;
 }
 
-#loadingText {
-    font-size: 30px;
-    text-align: center
-}
-
 #containers, #sliderElements{
     display: flex;
     align-items: center;  
@@ -99,13 +94,15 @@ svg .LFP-label {
     display: inline-block;
 }
 
+
 #channelButtonContainer, #groupButtonContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 40px;
-    margin-bottom: 20px;
+    margin: 1.2em;
 }
+
 
 .colorbar-rect {
     cursor: pointer;
@@ -118,9 +115,11 @@ svg .LFP-label {
     overflow: hidden; 
 }
 
+
 .divUploadButtons:hover .tooltipText {
     display: block;
 }
+
 
 .tooltipText {
     display: none;
@@ -138,8 +137,9 @@ svg .LFP-label {
     display: flex;
     justify-content: center;
     gap: 1em;
-    padding-bottom: 1em;
+    margin: 2em;
 }
+
 
 .inputValues, .timeInput {
     padding: 5px 10px;
@@ -150,15 +150,6 @@ svg .LFP-label {
     font-weight: bold;
 }
 
-#stimGroupDiv, #uploadDiv{ 
-    display: flex;
-    justify-content: center;
-    position: relative; 
-}
-
-#stimGroupText, #uploadText{
-    text-align: center;
-}
 
 .groupButton.active, #buttonANOVA.active, #buttonMean.active, 
 #buttonPCA.active, #buttonBonf.active, #buttonNew.active, 
@@ -166,6 +157,7 @@ svg .LFP-label {
     background-color: #555;
     color: white;
 }
+
 
 #computeButtonsDiv{
     flex: 1; 
@@ -175,13 +167,47 @@ svg .LFP-label {
     position: relative;
 }
 
-#formPCA {
-    display: none;
-    position: absolute;
-    top: -100%;
-    left: 7%;
-    z-index:0
+
+#pcaDiv{
+    display:flex;
+    flex-direction: column;
+    margin-left: 2em;
 }
+
+#pcaHeader{
+    display: flex;
+    padding-right: 3em;
+}
+
+h2{
+    margin: 0;
+    padding-inline: .5em;
+}
+
+#pcaList {
+    display:flex;
+    flex-direction: column;
+    height: 20em; 
+    overflow-y: auto;
+    font-size: 1.5em;
+    list-style-type: none;
+    margin: 0;  
+    padding: 0;  
+}
+
+#pcaList li {
+    display: flex;
+    justify-content: space-around;
+    background-color: rgb(255, 255, 255);  
+    cursor: pointer;
+    color: rgb(0, 0, 0); 
+}
+
+#pcaList li.selected {
+    background-color: blue;  
+    color: white;              
+}
+
 
  #buttonPCA.active:hover + #formPCA, #formPCA:hover, 
  #buttonANOVA.active:hover + #buttonBonf, #buttonBonf:hover {
@@ -190,16 +216,6 @@ svg .LFP-label {
 
 #buttonBonf {
     display:none;
-}
-
-#buttonPCA.active {
-    z-index:10
-}
-
-.component {
-    width: 2.2em;
-    font-size: 2em;
-    padding: .5em
 }
 
 #ANOVAdiv{
@@ -221,12 +237,27 @@ svg .LFP-label {
     width: 200px;
 }
 
-.stimGroupButton, #uploadButton{
+#categoryDiv{ 
+    display: flex;
+    justify-content: center;
+    }
+
+#uploadDiv{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#categoryText, #uploadText{
+    text-align: center;
+    margin-top: 50px;
+}
+
+.categoryButton, #uploadDiv button{
     padding: 10px 20px;
     border-radius: 10px;
     font-size: 1.5em;
-    margin: 20px;
-    margin-bottom: 100px;
+    margin: 20px 20px;
 }
 
 #uploadButtonsDiv{
@@ -247,9 +278,8 @@ svg .LFP-label {
     height: 40px;
     font-size: 24px;
     padding: 5px 10px;
-    border: 2px solid #007bff;
+    border: 2px solid #000000;
     border-radius: 5px; 
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); 
 }
 
 #chanSelect option {

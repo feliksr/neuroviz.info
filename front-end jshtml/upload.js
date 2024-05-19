@@ -4,9 +4,10 @@ class Upload{
 
     get_Elements(){
         const ids = [
-            'fileUpload', 'groupButtonContainer', 
+            'fileUpload', 'groupButtonContainer',
             'buttonUploadLFP', 'buttonUploadWavelet', 
-            'dataForm', 'uploadButtonsDiv',
+            'dataForm', 'uploadButtonsDiv', 
+            'channelButtonContainer'
         ];
 
         ids.forEach(id => {
@@ -18,10 +19,7 @@ class Upload{
 
 
     initialize(){
-
         dataLink.call('clearAllCache')
-
-        // xAxisLabel.textContent = 'Time (sec)'
         
         this.init_ButtonNew()
         this.init_DataForm()
@@ -31,32 +29,37 @@ class Upload{
   
     init_ButtonsUpload() {
         
-        uploadButtonsDiv.addEventListener('mouseleave', () => {
-            const buttons = document.querySelectorAll('.groupButton')
-            buttons.forEach(button  => {
-                if (button.classList.contains('active')){
-                    setTimeout(() => {
-                        uploadButtonsDiv.style.display = 'none';
-                    }, 300);
-                }
-            })
-        });
-
-        buttonUploadWavelet.addEventListener('click', () => {
-            fileUpload.urlSuffix = 'uploadWavelet'
-            fileUpload.click();
+        uploadButtonsDiv.addEventListener('mouseover', () => {
+            uploadButtonsDiv.active = true
         })
 
+        uploadButtonsDiv.addEventListener('mouseleave', () => {
+            uploadButtonsDiv.active = false
+
+            const buttons = document.querySelectorAll('.groupButton')
+            buttons.forEach(button => {
+                if (button.classList.contains('active')){
+                    uploadButtonsDiv.style.display = 'none';
+                }   
+            })
+        })
+                
+        buttonUploadWavelet.addEventListener('click', () => {
+            fileUpload.urlSuffix = 'uploadWavelet';
+            fileUpload.click();
+        });
+
+
         buttonUploadLFP.addEventListener('click', () => {
-            fileUpload.urlSuffix = 'uploadLFP'
+            fileUpload.urlSuffix = 'uploadLFP';
             fileUpload.click();
         })
         
         
         fileUpload.addEventListener('change', async (event) => {
-            dataForm.style.display = 'none'
-            const files = event.target.files
-            const url = fileUpload.urlSuffix
+            dataForm.style.display = 'none';
+            const files = event.target.files;
+            const url = fileUpload.urlSuffix;
             
             if (!this.chanNumbers){
                 this.chanNumbers = []
@@ -168,7 +171,7 @@ class Upload{
     
         button.id = 'buttonNew';
         button.textContent = 'New Group';
-        button.addEventListener('click', this.newGroup_Click);
+        button.addEventListener('click', () => this.newGroup_Click(button));
  
         groupButtonContainer.appendChild(button)
         groupButtonContainer.style.display = 'none'
@@ -176,16 +179,16 @@ class Upload{
     }
 
     
-    newGroup_Click () {
+    newGroup_Click (buttonNew) {
 
         DataCache.currentGroup = 0; 
         heatmapView.style.display = 'none'
 
         const buttons = document.querySelectorAll('.groupButton');
-        buttons.forEach(btn => btn.classList.remove('active'));         
+        buttons.forEach(button => button.classList.remove('active'));         
         
-        document.getElementById('buttonNew').classList.add('active');
-
+        buttonNew.classList.add('active');
+        channelButtonContainer.style.display='none'
         uploadButtonsDiv.style.display = 'flex'
     }
 
@@ -199,12 +202,23 @@ class Upload{
         groupButtonContainer.insertBefore(
             groupButton,buttonNew
         ) // swaps last and second to last elements
-            
+      
         groupButton.addEventListener('mouseover', () => {
             if(groupButton.classList.contains('active') && !buttonANOVA.active && !buttonPCA.active){
-                setTimeout(() => {uploadButtonsDiv.style.display = 'flex';}, 0);
+                setTimeout(() => {uploadButtonsDiv.style.display = 'flex';}, 300);
             }
         })
+
+        groupButton.addEventListener('mouseout', () => {
+            if(groupButton.classList.contains('active')){
+                setTimeout(() =>{if (!uploadButtonsDiv.active){
+                        uploadButtonsDiv.style.display = 'none';
+                    }}
+                ,300)
+            }
+            
+        })
+ 
         groupButton.click();
         uploadButtonsDiv.style.display = 'none';
     }

@@ -16,6 +16,8 @@ class DataCache{
     static freqHigh  = null
     static timeStart = null 
     static timeStop  = null
+    static compStart = null
+    static compEnd   = null
 
     static async set(group){
         const channel   = DataCache.currentChannel

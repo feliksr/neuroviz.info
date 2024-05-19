@@ -5,10 +5,11 @@ class Elements{
     get_Heatmap(){
 
         const ids = [
-            'buttonANOVA', 'buttonMean', 'buttonBaseline', 'channelButtonContainer',
-            'buttonPCA', 'buttonBonf', 'heatmapView', 'groupButtonContainer',
-            'containers', 'sliderElements', 'container4',
-            'compEnd', 'compStart', 'accuracy', 'chanSelect'
+            'buttonANOVA', 'buttonMean', 'buttonBaseline', 
+            'channelButtonContainer', 'groupButtonContainer',
+            'buttonPCA', 'buttonBonf', 'heatmapView', 'xAxisLabel',
+            'containers', 'sliderElements', 'container4', 'pcaDiv',
+            'accuracy', 'chanSelect', 'pcaHeader', 'pcaList'
         ]
 
         fetch('heatmap.html')
@@ -27,6 +28,8 @@ class Elements{
 
 
     initialize(){
+
+        xAxisLabel.textContent = 'Time (sec)'
         this.init_ModifyButton(buttonMean)
         this.init_ModifyButton(buttonBaseline)
 
@@ -40,37 +43,52 @@ class Elements{
     init_AnalysisButton(button){
         button.active = false
 
-        button.addEventListener('click', () => {
+        button.addEventListener('click', async () => {
+            heatmapView.style.visibility    = 'hidden'
+            containers.style.visibility     = 'hidden'
+            container4.style.visibility     = 'hidden'
+            sliderElements.style.visibility = 'hidden'
+
             button.classList.toggle('active')
             button.active = button.classList.contains('active')
 
             buttonBaseline.disabled = buttonANOVA.active && !buttonPCA.active
             buttonMean.disabled = buttonANOVA.active
             
-            if (button === buttonANOVA && buttonPCA.active || button===buttonPCA && buttonANOVA.active){
-                document.querySelectorAll('.groupButton').forEach(btn => {
-                    if (btn.textContent === DataCache.currentGroup){
-                        btn.click()
-                    }
-                })
-            } else {
-                document.querySelectorAll('.groupButton')
-                    .forEach(button =>
-                        button.classList.remove('active')
-                )
-
-                dataLink.call('deleteGroupNumbers')
+            if (buttonPCA.active){
+                pcaDiv.style.display = 'flex'
+            }else{
+                pcaDiv.style.display = 'none'
             }
+           
+            const buttons = document.querySelectorAll('.groupButton')
 
+            if ((button === buttonANOVA && !buttonPCA.active) || (button === buttonPCA && !buttonANOVA.active)){
+                await dataLink.call('deleteGroupNumbers')
+                // buttons.forEach(btn => {
+                //     btn.classList.remove('active')
+                //     // if (btn.group === DataCache.currentGroup){
+                //     //     btn.click()
+                //     //     console.log('clicked1')
+                //     // }
+                // })
+            }
+           
+            buttons.forEach(btn => {
+                if (btn.group === DataCache.currentGroup){
+                    btn.click()
+                    console.log('clicked2')
+                }
+            })
+            
+                        
             const buttonNew = document.getElementById('buttonNew')
             if (buttonNew){       
                 buttonNew.disabled = buttonPCA.active || buttonANOVA.active;
-            }
+            } // prevents new upload during ANOVA or PCA
 
-            heatmapView.style.visibility    = 'hidden'
-            containers.style.visibility     = 'hidden'
-            container4.style.visibility     = 'hidden'
-            sliderElements.style.visibility = 'hidden'
+
+        // })
         })
     }
 
@@ -82,7 +100,7 @@ class Elements{
             buttonBonf.active = buttonBonf.classList.contains('active')
 
             document.querySelectorAll('.groupButton').forEach(btn => {
-                if (btn.textContent === DataCache.currentGroup){
+                if (btn.group === DataCache.currentGroup){
                     btn.click()
                 }
             })
@@ -100,7 +118,7 @@ class Elements{
             buttonANOVA.disabled = buttonMean.active || (buttonBaseline.active && !buttonPCA.active)
 
             document.querySelectorAll('.groupButton').forEach(btn => {
-                if (btn.textContent === DataCache.currentGroup){
+                if (btn.group === DataCache.currentGroup){
                     btn.click()
                 }
             })
@@ -133,11 +151,6 @@ class Elements{
         }
     }   
 
-
-    async await_Promise(promise){
-        await Promise.all(promise)
-    }
-
     async set_GroupButtons(){
         let greyButtons = []
 
@@ -145,7 +158,6 @@ class Elements{
         
         buttons.forEach(button => {
             button.disabled = true
-            button.group = button.textContent
             button.textContent = ('Loading')
         })
 
@@ -156,10 +168,8 @@ class Elements{
                 button.textContent = button.group
                 button.disabled = false
                 button.click()
-                console.log('one')
             } else {
                 greyButtons.push(button)
-                console.log('two')
             }    
         }
         
@@ -168,15 +178,13 @@ class Elements{
             button.textContent = button.group
             if (!buttonANOVA.active && !buttonPCA.active) {
                 button.disabled = false 
-                console.log('three')
             }
         }
 
         for (const button of buttons){
             button.disabled = false
-            if (button.textContent === DataCache.currentGroup && (buttonANOVA.active || buttonPCA.active)) {
+            if (button.group === DataCache.currentGroup && (buttonANOVA.active || buttonPCA.active)) {
                 button.click()
-                console.log('four')
             }
         }
     }
@@ -188,8 +196,7 @@ class Elements{
 
         chanNumbers.forEach((number, index) => {
             const channel = document.createElement('option');
-            channel.innerHTML = 'Channel #' + number + '&nbsp;&nbsp;&nbsp;&nbsp;' +
-                (chanLabels ? chanLabels[index] : '');
+            channel.textContent = `Channel # ${number} ${chanLabels ? chanLabels[index]: ''}` 
             chanSelect.appendChild(channel);
         });
         
@@ -207,6 +214,7 @@ class Elements{
             
         const groupButton = document.createElement('button'); 
         groupButton.className = 'groupButton';
+        groupButton.group = group
 
         groupButtonContainer.appendChild(groupButton);
         groupButtonContainer.style.display = 'flex';
@@ -221,8 +229,9 @@ class Elements{
     }
 
     async click_GroupButton(groupButton){
-        const group = groupButton.textContent
+        const group = groupButton.group
         DataCache.currentGroup = group
+        channelButtonContainer.style.display = 'flex'
         
         const buttons = groupButtonContainer.querySelectorAll('*');
 
@@ -269,6 +278,83 @@ class Elements{
         })
     }
 
+    init_List(variance,maxComps){
+
+        for (let index = 0; index < maxComps; index++) {
+            const component = document.createElement('li');
+            component.idx = index;
+            
+            const compNum = document.createElement('span');
+            compNum.textContent = `${index + 1}`;
+            component.appendChild(compNum); 
+        
+            const compVar = document.createElement('span');
+            compVar.textContent = `${variance[index]} %`;
+            component.appendChild(compVar);
+
+            pcaList.appendChild(component)
+        }
+
+        let startSelected = false;
+        let compNums = [];
+
+        pcaList.addEventListener('mousedown', (event) => {
+            event.preventDefault(); // To avoid text selection
+            
+            const compSelected = event.target.closest('li')
+            
+            if (compSelected){
+                
+                if ((compNums.length)>0){
+                    compNums.forEach(number => {
+                        const component = pcaList.children[number] 
+                        if (component) {
+                            component.classList.remove('selected')
+                            component.selected = false
+                        }
+                    })
+
+                    compNums = []
+                }
+
+                startSelected = true;
+                compSelected.classList.add('selected')
+                compSelected.selected = true
+                compNums.push(compSelected.idx)
+                
+                DataCache.compStart = null
+                DataCache.compEnd = null;
+            }
+        })
+        
+        pcaList.addEventListener('mouseover', (event) =>  {
+            event.preventDefault(); // To avoid text selection
+            
+            const compSelected = event.target.closest('li');
+            if (startSelected && compSelected && (compSelected.selected !== true)){
+                compSelected.classList.add('selected')
+                compSelected.selected = true
+                compNums.push(compSelected.idx)
+            }    
+        })
+
+        document.addEventListener('mouseup', () => {
+            if (startSelected === true){
+                console.log(compNums)
+                DataCache.compStart = Math.min(...compNums)
+                DataCache.compEnd = Math.max(...compNums)
+                document.querySelectorAll('.groupButton').forEach(button => {
+                    if (button.group === DataCache.currentGroup) {
+                        button.click()
+                    }
+                })  
+                startSelected = false;
+            }
+            
+        });
+
+    }
+
 }
 
 
@@ -276,7 +362,7 @@ class Functions{
 
     async run_ANOVA(){
         
-        if (element.buttonPCA.active && 
+        if (buttonPCA.active && 
             DataCache.wavelets[DataCache.currentGroup]){
             
                 await this.run_PCA()
@@ -285,8 +371,8 @@ class Functions{
         const args = {
             "group"       : DataCache.currentGroup,
             "channel"     : DataCache.currentChannel,
-            "bonfCorrect" : element.buttonBonf.active,
-            'PCAreduce'   : DataCache.wavelets[DataCache.currentGroup] ? element.buttonPCA.active : false
+            "bonfCorrect" : buttonBonf.active,
+            'PCAreduce'   : DataCache.wavelets[DataCache.currentGroup] ? buttonPCA.active : false
         }
 
         const response = await dataLink.call('ANOVA',args)
@@ -297,29 +383,27 @@ class Functions{
 
 
     async run_PCA(){
-
-        if (element.compStart.value>compEnd.value){
-            
-            const start  = element.compStart.value
-            const end    = element.compEnd.value
-            
-            element.compEnd.value   = start
-            element.compStart.value = end
-        }
-
         const args = {
             "group"          : DataCache.currentGroup,
             "channel"        : DataCache.currentChannel,
-            "baseCorrect"    : element.buttonBaseline.active,
-            "componentStart" : element.compStart ? parseInt(element.compStart.value) : null,
-            "componentEnd"   : element.compEnd ? parseInt(element.compEnd.value) : null
+            "baseCorrect"    : buttonBaseline.active,
+            "componentStart" : DataCache.compStart,
+            "componentEnd"   : DataCache.compEnd
         };
         
         const response = await dataLink.call('PCA',args)
-    
-        element.compEnd.value        = response.componentEnd
-        element.compStart.value      = response.componentStart
-        element.accuracy.textContent = 
+        const maxComps = response.maxComponents
+        const variance = response.variance
+
+        if (pcaList.children.length === 0){
+            element.init_List(variance,maxComps)            
+        }
+
+        while (pcaList.children.length > maxComps) {
+            pcaList.removeChild(pcaList.lastChild);
+        }
+        
+        accuracy.textContent = 
             `Decoding Accuracy (SVM): ${response.accuracy}%`
         
         const data = dataLink.parse_Data(response)
@@ -330,16 +414,16 @@ class Functions{
 
     
     view_Trials(data) {
-        element.heatmapView.style.display = 'block'
+        heatmapView.style.display = 'block'
         
         if (!data.LFPs && !data.wavelets){
-            element.heatmapView.style.visibility = 'hidden';
+            heatmapView.style.visibility = 'hidden';
         } else{
-            element.heatmapView.style.visibility = 'visible';
+            heatmapView.style.visibility = 'visible';
         }
         
-        element.containers.style.visibility  = 'hidden'
-        element.container4.style.visibility  = 'hidden'
+        containers.style.visibility  = 'hidden'
+        container4.style.visibility  = 'hidden'
         
         if (data.LFPs){
             let initLFP
@@ -353,7 +437,7 @@ class Functions{
             const LFPchart = new LFPplot()
             LFPchart.initialize(initLFP)
 
-            element.container4.style.visibility = 'visible'
+            container4.style.visibility = 'visible'
             console.log('LFP displayed')
         }
         
@@ -364,7 +448,7 @@ class Functions{
             let initWavelet
             let spectra = new SpectralPlot();
 
-            if (!element.buttonMean.active){
+            if (!buttonMean.active){
                 initWavelet = data.wavelets.d3.data.filter(d => d.trial === 1)
 
                 splitWavelets = spectra.init_Wavelet(initWavelet)
@@ -376,7 +460,7 @@ class Functions{
                 splitWavelets = spectra.init_Wavelet(initWavelet)
                 spectra.set_Wavelet(initWavelet,splitWavelets)
             }
-            element.containers.style.visibility = 'visible'
+            containers.style.visibility = 'visible'
             console.log('wavelet displayed')
         }
 

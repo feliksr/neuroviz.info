@@ -10,6 +10,21 @@
 
     <span id="colorbarLabel"></span>
 
+    <div id = 'pcaDiv' style = "display: none;">
+        <div id = 'pcaHeader'>
+             <h2 id = 'compText'>
+                Component
+             </h2>
+             
+             <h2 id = 'varText'>
+                Variance
+             </h2>
+        </div>
+       
+        <ol id="pcaList"></ol>
+
+    </div>
+
 </div>
 
 <div class="container" id="container4"></div>
@@ -32,11 +47,6 @@
         <button id = "buttonBaseline"> 1/f correction</button>
         <button id = "buttonPCA">PCA</button>
         
-        <form id = formPCA>
-            <label id = "compLabel">Components:</label>
-            <input id="compStart" type="number" class= "component" min="1">
-            <input id="compEnd"  type="number"class = "component" min="1">
-        </form>
         
         <div id = 'ANOVAdiv'>
             <button id = "buttonANOVA">ANOVA</button>
